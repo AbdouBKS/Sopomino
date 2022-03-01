@@ -715,7 +715,7 @@ GameObject:
   - component: {fileID: 1422251777}
   - component: {fileID: 1422251778}
   m_Layer: 0
-  m_Name: Tetrimino Manager
+  m_Name: Tetriminos Manager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -748,7 +748,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed3e72cb166f6e642943c87028a9c015, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  allTetriminos:
+  _environment: {fileID: 1727938692}
+  _allTetriminos:
   - {fileID: 7330955121763741897, guid: f5ba5ffbf51d9ae45b50248e85722020, type: 3}
   - {fileID: 6321455226015961256, guid: 52abf592cb936904ebff5a02502ff3f5, type: 3}
   - {fileID: 8154941733448647482, guid: 66a81d974dc13f047aba76602c595062, type: 3}
@@ -756,9 +757,6 @@ MonoBehaviour:
   - {fileID: 5317393836710843657, guid: 258e53cac4917c6499f7789275aec072, type: 3}
   - {fileID: 6926126999966510321, guid: b3fa5b9314b0717409b9091c30d108c2, type: 3}
   - {fileID: 5980769959470388195, guid: be2b02b3b364abd4db207e72574c955d, type: 3}
-  nextTetrimios: []
-  _newTetrimino: {fileID: 0}
-  parent: {fileID: 1727938692}
 --- !u!1 &1727938692
 GameObject:
   m_ObjectHideFlags: 0

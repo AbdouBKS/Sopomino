@@ -7,16 +7,16 @@ public class Tetrimino : MonoBehaviour
 
     private bool _arrowPressed = false;
 
-    private float _timeToFall = 0.85f;
+    private const float TIME_TO_FALL = 0.85f;
+    private float _timeToFall = TIME_TO_FALL;
     private float _fallTime = 0f;
+
+    private bool _florTouched = false;
+    private float _allowedFlorTouchedTime = 4f;
+    private float _florTouchedTime = 0f;
 
     private float _intervalToPress = 0.2f;
     private float _pressedTime;
-
-    private const int MAP_WIDTH = 10;
-    private const int MAP_HEIGHT = 22;
-
-    private static Transform[,] grid = new Transform[MAP_WIDTH, MAP_HEIGHT];
 
     public delegate void FallAction();
     public static event FallAction OnFalled;
@@ -26,25 +26,29 @@ public class Tetrimino : MonoBehaviour
     {
         MoveByOne();
         Rotate();
-
-        if (Input.GetKey(KeyCode.DownArrow)) {
-            _fallTime *= 5;
-        }
+        SetFallSpeed();
     }
 
     private void FixedUpdate()
     {
-        _fallTime += !_arrowPressed ? Time.deltaTime : Time.deltaTime * 0.5f;
-
+        // increase the pressedTime in order to make the tetrimino move laterally faster
         if (_arrowPressed) {
-            _pressedTime += Time.deltaTime;
+            _pressedTime += Time.fixedDeltaTime;
         }
 
+        _fallTime += Time.fixedDeltaTime;
+
+        if (_florTouched) {
+            _florTouchedTime += Time.fixedDeltaTime;
+        }
+
+        // make the tetrimino fall if enough time has been past
         if (_fallTime >= _timeToFall) {
             Fall();
             _fallTime = 0f;
         }
 
+        // the pressedTime is enough to make the tetrimino move laterally faster
         if (_pressedTime > _intervalToPress) {
             Move();
         }
@@ -52,12 +56,27 @@ public class Tetrimino : MonoBehaviour
 
     private void Fall()
     {
+        if ((_florTouched && !_arrowPressed && _florTouchedTime > TIME_TO_FALL) || (_florTouchedTime > _allowedFlorTouchedTime)) {
+            Fallen();
+            OnFalled?.Invoke();
+        }
+
         transform.position += new Vector3(0, -1, 0);
+
+        // cancel the fall if it's not valid and start counting time since
         if (!ValidMove()) {
             transform.position += new Vector3(0, 1, 0);
-            OnFalled?.Invoke();
-            Fallen();
+            _florTouched = true;
         }
+    }
+
+    private void SetFallSpeed()
+    {
+        if (Input.GetKey(KeyCode.DownArrow)) {
+            _timeToFall = 0f;
+            return;
+        }
+        _timeToFall = TIME_TO_FALL;
     }
 
     private void Rotate()
@@ -121,66 +140,7 @@ public class Tetrimino : MonoBehaviour
 
     private void Fallen()
     {
-        AddToGrid();
-        CheckLines();
         this.enabled = false;
-    }
-
-    private void CheckLines()
-    {
-        for (int i = MAP_HEIGHT - 1; i >= 0; i--) {
-            if (HasLine(i)) {
-                DeleteLine(i);
-                DownLines(i);
-            }
-        }
-    }
-
-    private bool HasLine(int i)
-    {
-        for (int j = 0; j < MAP_WIDTH; j++) {
-            if (!grid[j,i]) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private void DeleteLine(int i)
-    {
-        for (int j = 0; j < MAP_WIDTH; j++) {
-            Destroy(grid[j,i].gameObject);
-            grid[j,i] = null;
-        }
-    }
-
-    private void DownLines(int i)
-    {
-        for (int y = i; y < MAP_HEIGHT; y++) {
-            DownLine(y);
-        }
-    }
-
-    private void DownLine(int i)
-    {
-        for (int j = 0; j < MAP_WIDTH; j++) {
-            if (grid[j,i]) {
-                grid[j,i - 1] = grid[j,i];
-                grid[j,i - 1].transform.position += new Vector3(0, -1, 0);
-                grid[j,i] = null;
-            }
-        }
-    }
-
-    private void AddToGrid()
-    {
-        foreach (Transform children in transform)
-        {
-            int roundedX = Mathf.RoundToInt(children.position.x);
-            int roundedY = Mathf.RoundToInt(children.position.y);
-
-            grid[roundedX, roundedY] = children;
-        }
     }
 
     private void ResetPressed()
@@ -196,11 +156,11 @@ public class Tetrimino : MonoBehaviour
             int roundedX = Mathf.RoundToInt(children.position.x);
             int roundedY = Mathf.RoundToInt(children.position.y);
 
-            if (roundedX < 0 || roundedX >= MAP_WIDTH || roundedY < 0 || roundedY >= MAP_HEIGHT) {
+            if (roundedX < 0 || roundedX >= TetriminosManager.MAP_WIDTH || roundedY < 0 || roundedY >= TetriminosManager.MAP_HEIGHT) {
                 return false;
             }
 
-            if (grid[roundedX, roundedY] != null) {
+            if (TetriminosManager.Instance.Grid[roundedX, roundedY] != null) {
                 return false;
             }
         }
