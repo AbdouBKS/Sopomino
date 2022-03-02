@@ -72,4 +72,16 @@ public static class Helpers
 
         return true;
     }
+
+    public static string RemoveContained(this string source, string removeString)
+    {
+        int index = source.IndexOf(removeString);
+        string dest = "";
+
+        dest = (index < 0)
+            ? source
+            : source.Remove(index, removeString.Length);
+
+        return dest;
+    }
 }

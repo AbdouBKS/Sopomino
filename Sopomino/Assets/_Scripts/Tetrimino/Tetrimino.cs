@@ -14,13 +14,19 @@ public class Tetrimino : MonoBehaviour
     private float _allowedFlorTouchedTime = 4f;
     private float _florTouchedTime = 0f;
 
-    private float _intervalToPress = 0.2f;
+    private float _intervalToPress = 0.10f;
     private float _pressedTime;
 
     public delegate void FallAction();
     public static event FallAction OnFalled;
 
-    public Tetrimino _previewTetrimino;
+    private Tetrimino _previewTetrimino;
+
+    private void OnDisable() {
+        if (_previewTetrimino) {
+            Destroy(_previewTetrimino.gameObject);
+        }
+    }
 
     private void Start()
     {
@@ -34,6 +40,7 @@ public class Tetrimino : MonoBehaviour
         SetFallSpeed();
         Preview();
         ShotTetrimino();
+        Swap();
     }
 
     private void FixedUpdate()
@@ -63,16 +70,18 @@ public class Tetrimino : MonoBehaviour
 
     private void Fall()
     {
-        if ((_florTouched && !_arrowPressed && _florTouchedTime > TIME_TO_FALL) || (_florTouchedTime > _allowedFlorTouchedTime)) {
-            Fallen();
-        }
-
         transform.position += new Vector3(0, -1, 0);
 
         // cancel the fall if it's not valid and start counting time since
         if (!this.ValidMove()) {
             transform.position += new Vector3(0, 1, 0);
             _florTouched = true;
+        } else {
+            _florTouched = false;
+        }
+
+        if ((_florTouched && !_arrowPressed && _florTouchedTime > TIME_TO_FALL) || (_florTouchedTime > _allowedFlorTouchedTime)) {
+            Fallen();
         }
     }
 
@@ -83,6 +92,13 @@ public class Tetrimino : MonoBehaviour
             return;
         }
         _timeToFall = TIME_TO_FALL;
+    }
+
+    private void Swap()
+    {
+        if (Input.GetKeyDown(KeyCode.C)) {
+            TetriminosManager.Instance.Swap();
+        }
     }
 
     private void ShotTetrimino()
