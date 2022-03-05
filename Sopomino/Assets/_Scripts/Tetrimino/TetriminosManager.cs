@@ -17,10 +17,25 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
     private GameObject _swappableTetrimino;
     private GameObject _swappableToDestroy;
     private bool _canSwap;
+
+    public delegate void ScoreAction();
+    public static event ScoreAction OnScoreChange;
+
     private const string SWAPPABLE_NAME = "Swappable";
 
     public const int MAP_WIDTH = 10;
     public const int MAP_HEIGHT = 22;
+
+    private int _combo;
+    private int _score;
+    public int Score {
+        get { return _score; }
+    }
+
+    private int _lines;
+    public int Lines {
+        get { return _lines; }
+    }
 
     private Transform[,] _grid;
     public Transform[,] Grid {
@@ -36,13 +51,15 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
         Tetrimino.OnFalled += CheckLines;
         Tetrimino.OnFalled += SpawnTetrimino;
 
+        _score = 0;
+        _lines = 0;
         _grid = new Transform[MAP_WIDTH, MAP_HEIGHT];
         _nextTetrimios = new List<Tetrimino>(BUFFER_SIZE);
         _isDead = false;
         _swappableTetrimino = null;
         _canSwap = true;
 
-
+        OnScoreChange?.Invoke();
         AddTetriminoToBuffer(BUFFER_SIZE);
         SpawnTetrimino();
     }
@@ -169,6 +186,8 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
 
     private void CheckLines()
     {
+        _combo = 1;
+
         if (_isDead) {
             return;
         }
@@ -177,8 +196,18 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
             if (HasLine(i)) {
                 DeleteLine(i);
                 DownLines(i);
+                IncrementScore();
             }
         }
+    }
+
+    private void IncrementScore()
+    {
+        _score += _combo;
+        _lines++;
+        _combo++;
+
+        OnScoreChange?.Invoke();
     }
 
     private bool HasLine(int i)

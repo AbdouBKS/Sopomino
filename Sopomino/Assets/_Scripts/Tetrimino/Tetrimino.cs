@@ -14,13 +14,13 @@ public class Tetrimino : MonoBehaviour
     private float _allowedFlorTouchedTime = 4f;
     private float _florTouchedTime = 0f;
 
-    private float _intervalToPress = 0.10f;
+    private float _intervalToPress = 0.125f;
     private float _pressedTime;
+
+    private Tetrimino _previewTetrimino;
 
     public delegate void FallAction();
     public static event FallAction OnFalled;
-
-    private Tetrimino _previewTetrimino;
 
     private void OnDisable() {
         if (_previewTetrimino) {

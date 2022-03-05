@@ -582,7 +582,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _rotationPoint: {x: 0, y: 0, z: 0}
-  Swapped: 0
 --- !u!114 &-4896219401435737932
 MonoBehaviour:
   m_ObjectHideFlags: 0
