@@ -35,6 +35,10 @@ public class Tetrimino : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance.State == GameState.Pause) {
+            return;
+        }
+
         MoveByOne();
         Rotate();
         SetFallSpeed();
@@ -45,6 +49,10 @@ public class Tetrimino : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (GameManager.Instance.State == GameState.Pause) {
+            return;
+        }
+
         // increase the pressedTime in order to make the tetrimino move laterally faster
         if (_arrowPressed) {
             _pressedTime += Time.fixedDeltaTime;

@@ -5,7 +5,12 @@ public class GameManager : StaticInstance<GameManager> {
     public static event Action<GameState> OnBeforeStateChanged;
     public static event Action<GameState> OnAfterStateChanged;
 
-    public GameObject loosingScreen;
+    [Header("UI")]
+    [SerializeField]
+    private GameObject _loosingScreen;
+
+    [SerializeField]
+    private GameObject _pause;
 
     public GameState State { get; private set; }
 
@@ -17,13 +22,22 @@ public class GameManager : StaticInstance<GameManager> {
         State = newState;
         switch (newState) {
             case GameState.Starting:
-                HandleGameStart();
+                HandleStarting();
                 break;
             case GameState.Loose:
                 HandleLoose();
                 break;
             case GameState.TryAgain:
                 HandleTryAgain();
+                break;
+            case GameState.Pause:
+                HandlePause();
+                break;
+            case GameState.Playing:
+                HandlePlaying();
+                break;
+            case GameState.ResetGame:
+                HandleResetGame();
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
@@ -33,15 +47,20 @@ public class GameManager : StaticInstance<GameManager> {
 
     }
 
-    private void HandleGameStart()
+    private void HandlePause()
     {
-        loosingScreen.SetActive(false);
+        _pause.SetActive(true);
+    }
+
+    private void HandleStarting()
+    {
         TetriminosManager.Instance.enabled = true;
+        ChangeState(GameState.Playing);
     }
 
     private void HandleLoose()
     {
-        loosingScreen.SetActive(true);
+        _loosingScreen.SetActive(true);
         TetriminosManager.Instance.enabled = false;
     }
 
@@ -50,11 +69,31 @@ public class GameManager : StaticInstance<GameManager> {
         TetriminosManager.Instance.CleanTetriminos();
         ChangeState(GameState.Starting);
     }
+
+    private void HandleResetGame()
+    {
+        TetriminosManager.Instance.enabled = false;
+        ChangeState(GameState.TryAgain);
+    }
+
+    private void HandlePlaying()
+    {
+        ResetUI();
+    }
+
+    private void ResetUI()
+    {
+        _loosingScreen.SetActive(false);
+        _pause.SetActive(false);
+    }
 }
 
 [Serializable]
 public enum GameState {
-    Starting = 0,
-    Loose = 1,
-    TryAgain = 2,
+    Starting,
+    Playing,
+    Loose,
+    TryAgain,
+    ResetGame,
+    Pause,
 }
