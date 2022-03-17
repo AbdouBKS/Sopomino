@@ -44,6 +44,17 @@ public class GameUI : MonoBehaviour
         GameManager.OnAfterStateChanged -= ResetGameUI;
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape)) {
+            if (GameManager.Instance.State == GameState.Pause) {
+                BUTTON_Resume();
+                return;
+            }
+            BUTTON_Pause();
+        }
+    }
+
     private void SetScore()
     {
         _scoreText.text = TetriminosManager.Instance.Score.ToString();
