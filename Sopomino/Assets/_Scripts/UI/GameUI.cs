@@ -17,6 +17,7 @@ public class GameUI : MonoBehaviour
 
     [SerializeField]
     private List<Image> _nextTetriminosImage;
+    private const string EMPTY_LOGO = "Empty";
 
     [SerializeField]
     private List<Sprite> _tetriminosLogo;
@@ -32,7 +33,7 @@ public class GameUI : MonoBehaviour
         TetriminosManager.OnSwappableChange += SetSwappable;
         TetriminosManager.OnTetriminoBufferChange += SetNextTetriminos;
 
-        GameManager.OnAfterStateChanged += ResetUi;
+        GameManager.OnAfterStateChanged += ResetGameUI;
     }
 
     private void OnDisable() {
@@ -40,7 +41,18 @@ public class GameUI : MonoBehaviour
         TetriminosManager.OnSwappableChange -= SetSwappable;
         TetriminosManager.OnTetriminoBufferChange -= SetNextTetriminos;
 
-        GameManager.OnAfterStateChanged -= ResetUi;
+        GameManager.OnAfterStateChanged -= ResetGameUI;
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape)) {
+            if (GameManager.Instance.State == GameState.Pause) {
+                BUTTON_Resume();
+                return;
+            }
+            BUTTON_Pause();
+        }
     }
 
     private void SetScore()
@@ -74,12 +86,35 @@ public class GameUI : MonoBehaviour
         }
     }
 
-    private void ResetUi(GameState newState)
+    private void ResetGameUI(GameState newState)
     {
         if (newState != GameState.Starting) {
             return;
         }
 
-        SetSwappable("Empty");
+        SetSwappable(EMPTY_LOGO);
+    }
+
+    public void BUTTON_Pause()
+    {
+        GameManager.Instance.ChangeState(GameState.Pause);
+    }
+
+    public void BUTTON_Resume()
+    {
+        GameManager.Instance.ChangeState(GameState.Playing);
+    }
+
+    public void BUTTON_ResetGame()
+    {
+        GameManager.Instance.ChangeState(GameState.ResetGame);
+    }
+
+    public void BUTTON_Quit()
+    {
+        #if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+        #endif
+        Application.Quit();
     }
 }
