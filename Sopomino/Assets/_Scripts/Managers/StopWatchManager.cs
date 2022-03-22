@@ -5,14 +5,15 @@ public class StopWatchManager : StaticInstance<StopWatchManager>
 {
     public float TimeSpent { get; private set; }
     public TimeSpan CurrentTime { get; private set;}
+    [SerializeField]
     private bool _status;
 
     private void OnEnable() {
-        GameManager.OnAfterStateChanged += GameRestart;
+        GameManager.OnBeforeStateChanged += GameRestart;
     }
 
     private void OnDisable() {
-        GameManager.OnAfterStateChanged -= GameRestart;
+        GameManager.OnBeforeStateChanged -= GameRestart;
     }
 
     void Start()
@@ -22,7 +23,7 @@ public class StopWatchManager : StaticInstance<StopWatchManager>
 
     void Update()
     {
-        if (GameManager.Instance.State != GameState.Pause || _status) {
+        if (!_status) {
             return;
         }
 
@@ -45,5 +46,7 @@ public class StopWatchManager : StaticInstance<StopWatchManager>
         if (state == GameState.Starting) {
             ResetStopWatch();
         }
+
+        SetStopWatchStatus(state == GameState.Playing ? true : false);
     }
 }

@@ -23,8 +23,6 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
 
     private Tetrimino _currentTetrimino;
 
-    [SerializeField]
-    private Transform _swappableTetriminoPosition;
     private GameObject _swappableTetrimino;
     private GameObject _swappableToDestroy;
     private bool _canSwap;

@@ -66,7 +66,8 @@ public class GameUI : MonoBehaviour
 
     private void HandleEscapeKey()
     {
-        if (Input.GetKeyDown(KeyCode.Escape)) {
+        if (GameManager.Instance.State != GameState.Loose &&
+            Input.GetKeyDown(KeyCode.Escape)) {
             if (GameManager.Instance.State == GameState.Pause) {
                 BUTTON_Resume();
                 return;
