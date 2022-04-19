@@ -58,10 +58,14 @@ public class GameUI : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance.State != GameState.Pause) {
-            SetTimerText();
-        }
+        // state independent
         HandleEscapeKey();
+
+        // state depedent
+        if (GameManager.Instance.State != GameState.Pause) {
+            return;
+        }
+        SetTimerText();
     }
 
     private void HandleEscapeKey()
