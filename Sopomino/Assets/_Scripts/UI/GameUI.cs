@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameUI : MonoBehaviour
 {
@@ -145,6 +146,11 @@ public class GameUI : MonoBehaviour
         UnityEditor.EditorApplication.isPlaying = false;
         #endif
         Application.Quit();
+    }
+
+    public void BUTTON_GoToMenu()
+    {
+        SceneManager.LoadScene(ConstInfo.MAIN_MENU_SCENE);
     }
 
     #endregion
