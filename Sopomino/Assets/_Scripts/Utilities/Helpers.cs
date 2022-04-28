@@ -54,7 +54,7 @@ public static class Helpers
         return duplicated;
     }
 
-    public static  bool ValidMove(this Tetrimino tetrimino)
+    public static bool ValidMove(this Tetrimino tetrimino)
     {
         foreach (Transform children in tetrimino.transform)
         {

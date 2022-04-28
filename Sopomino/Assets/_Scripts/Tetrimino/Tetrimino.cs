@@ -19,6 +19,18 @@ public class Tetrimino : MonoBehaviour
 
     private Tetrimino _previewTetrimino;
 
+    private int _tryKickCount = 0;
+
+    private enum KickTries
+    {
+        UP,
+        UP_AGAIN,
+        LEFT,
+        LEFT_AGAIN,
+        RIGHT,
+        RIGHT_AGAIN,
+    }
+
     public delegate void FallAction();
     public static event FallAction OnFalled;
 
@@ -35,12 +47,12 @@ public class Tetrimino : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance.State == GameState.Pause) {
+        if (GameManager.Instance.State != GameState.Playing) {
             return;
         }
 
         MoveByOne();
-        Rotate();
+        GetRotate();
         SetFallSpeed();
         Preview();
         ShotTetrimino();
@@ -49,7 +61,7 @@ public class Tetrimino : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (GameManager.Instance.State == GameState.Pause) {
+        if (GameManager.Instance.State != GameState.Playing) {
             return;
         }
 
@@ -78,11 +90,11 @@ public class Tetrimino : MonoBehaviour
 
     private void Fall()
     {
-        transform.position += new Vector3(0, -1, 0);
+        transform.position += Vector3.down;
 
         // cancel the fall if it's not valid and start counting time since
         if (!this.ValidMove()) {
-            transform.position += new Vector3(0, 1, 0);
+            transform.position += Vector3.up;
             _florTouched = true;
         } else {
             _florTouched = false;
@@ -117,14 +129,11 @@ public class Tetrimino : MonoBehaviour
         }
     }
 
-    private void Rotate()
+    private void GetRotate()
     {
         if (Input.GetKeyDown(KeyCode.UpArrow)) {
             _arrowPressed = true;
-            RotateBy90();
-            if (!this.ValidMove()) {
-                RotateBy90(-1);
-            }
+            Rotate();
         }
     }
 
@@ -162,23 +171,90 @@ public class Tetrimino : MonoBehaviour
 
     private void MoveLeft()
     {
-        transform.position += new Vector3(-1, 0, 0);
+        transform.position += Vector3.left;
         if (!this.ValidMove()) {
-            transform.position += new Vector3(1, 0, 0);
+            transform.position += Vector3.right;
         }
     }
 
     private void MoveRight()
     {
-        transform.position += new Vector3(1, 0, 0);
+        transform.position += Vector3.right;
         if (!this.ValidMove()) {
-            transform.position += new Vector3(-1, 0, 0);
+            transform.position += Vector3.left;
+
+        }
+    }
+
+    private void MoveUp()
+    {
+        transform.position += Vector3.up;
+        if (!this.ValidMove()) {
+            transform.position += Vector3.down;
+        }
+    }
+
+    private void Rotate()
+    {
+        Vector3 initialPos = transform.position;
+
+        RotateBy90();
+        if (!this.ValidMove()) {
+            TryKick(initialPos);
+        }
+    }
+
+    private void TryKick(Vector3 initialPos)
+    {
+        switch (_tryKickCount)
+        {
+            case (int)KickTries.UP:
+                FirstTryKickDirection(Vector3.up);
+                break;
+            case (int)KickTries.UP_AGAIN:
+                SecondTryKickDirection(Vector3.up);
+                break;
+            case (int)KickTries.LEFT:
+                FirstTryKickDirection(Vector3.left);
+                break;
+            case (int)KickTries.LEFT_AGAIN:
+                SecondTryKickDirection(Vector3.left);
+                break;
+            case (int)KickTries.RIGHT:
+                FirstTryKickDirection(Vector3.right);
+                break;
+            case (int)KickTries.RIGHT_AGAIN:
+                SecondTryKickDirection(Vector3.right);
+                break;
+            default:
+                _tryKickCount = 0;
+                RotateBy90(-1);
+                transform.position = initialPos;
+                break;
+        }
+
+        void FirstTryKickDirection(Vector3 direction)
+        {
+            transform.position += direction;
+            if (!this.ValidMove()) {
+                _tryKickCount++;
+                TryKick(initialPos);
+            }
+        }
+
+        void SecondTryKickDirection(Vector3 direction)
+        {
+            transform.position += direction;
+            if (!this.ValidMove()) {
+                _tryKickCount++;
+                transform.position = initialPos;
+                TryKick(initialPos);
+            }
         }
     }
 
     private void Preview()
     {
-
         _previewTetrimino.transform.position = transform.position;
 
         while (_previewTetrimino.ValidMove())
