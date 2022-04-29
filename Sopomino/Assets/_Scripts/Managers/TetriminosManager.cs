@@ -13,6 +13,9 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
     [SerializeField]
     private List<Tetrimino> _tetriminos;
 
+    private Dictionary<string, Tetrimino> _previewTetriminos;
+    private const string PREVIEW_PREFIX = "Preview ";
+
     [HideInInspector]
     public ReadOnlyCollection<Tetrimino> NextTetriminos {
         get {
@@ -23,8 +26,8 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
 
     private Tetrimino _currentTetrimino;
 
-    private GameObject _swappableTetrimino;
-    private GameObject _swappableToDestroy;
+    private Tetrimino _swappableTetrimino;
+    private Tetrimino _swappableToDestroy;
     private bool _canSwap;
 
     public delegate void ScoreAction();
@@ -60,18 +63,6 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
         Tetrimino.OnFalled += AddTetriminoToGrid;
         Tetrimino.OnFalled += CheckLines;
         Tetrimino.OnFalled += SpawnTetrimino;
-
-        Score = 0;
-        Lines = 0;
-        Grid = new Transform[MAP_WIDTH, MAP_HEIGHT];
-        _nextTetriminos = new List<Tetrimino>(BUFFER_SIZE);
-        _isDead = false;
-        _swappableTetrimino = null;
-        _canSwap = true;
-
-        OnScoreChange?.Invoke();
-        AddTetriminoToBuffer(BUFFER_SIZE);
-        SpawnTetrimino();
     }
 
     private void OnDisable()
@@ -79,78 +70,145 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
         Tetrimino.OnFalled -= AddTetriminoToGrid;
         Tetrimino.OnFalled -= CheckLines;
         Tetrimino.OnFalled -= SpawnTetrimino;
+    }
 
+    private void OnDestroy()
+    {
+        EndGame();
+    }
+
+    public void StartGame()
+    {
+        Score = 0;
+        Lines = 0;
+        Grid = new Transform[MAP_WIDTH, MAP_HEIGHT];
+        _nextTetriminos = new List<Tetrimino>(BUFFER_SIZE);
+        _previewTetriminos = new Dictionary<string, Tetrimino>();
+        _swappableTetrimino = null;
+        _isDead = false;
+        _canSwap = true;
+
+        OnScoreChange?.Invoke();
+        AddTetriminoToBuffer(BUFFER_SIZE);
+        if (_previewTetriminos.Count != _tetriminos.Count) {
+            CreatePreviewTetriminos();
+        }
+        SpawnTetrimino();
+    }
+
+    public void EndGame()
+    {
         Grid = null;
         _nextTetriminos = null;
+        _previewTetriminos = null;
         _swappableTetrimino = null;
     }
 
-    public void SpawnTetrimino()
+    private void CreatePreviewTetriminos()
+    {
+        foreach (Tetrimino tetrimino in _tetriminos)
+        {
+            createPreviewTetrimono(tetrimino);
+        }
+
+        void createPreviewTetrimono(Tetrimino tetrimino)
+        {
+            Tetrimino previewTetrimino = Instantiate(tetrimino);
+
+            previewTetrimino.name = PREVIEW_PREFIX + tetrimino.name;
+            previewTetrimino.enabled = false;
+            previewTetrimino.gameObject.SetActive(false);
+
+            foreach (Transform children in previewTetrimino.transform)
+            {
+                SpriteRenderer childrenSr = children.GetComponent<SpriteRenderer>();
+                Color tmp = childrenSr.color;
+                tmp.a = 0.5f;
+                childrenSr.color = tmp;
+            }
+
+            _previewTetriminos.Add(previewTetrimino.name, previewTetrimino);
+        }
+    }
+
+    private Tetrimino InstantiateTetrimino(Tetrimino tetrimino)
+    {
+        Tetrimino newTetrimino = Instantiate(tetrimino);
+
+        Tetrimino previewTetrimino = _previewTetriminos[PREVIEW_PREFIX + tetrimino.name];
+
+        previewTetrimino.gameObject.SetActive(true);
+        newTetrimino.PreviewTetrimino = previewTetrimino;
+
+        return newTetrimino;
+    }
+
+    private Tetrimino Instantiate(Tetrimino tetrimino)
+    {
+        return Instantiate(
+            tetrimino,
+            transform.position,
+            Quaternion.identity,
+            _environment.transform
+        );
+    }
+
+    private void SpawnTetrimino()
     {
         if (_isDead) {
             return;
         }
 
-        Tetrimino newTetrimino = _nextTetriminos[0];
+        _currentTetrimino = InstantiateTetrimino(_nextTetriminos[0]);
 
         _nextTetriminos.Remove(_nextTetriminos[0]);
         AddTetriminoToBuffer();
 
-        _currentTetrimino = Instantiate(
-            newTetrimino,
-            transform.position,
-            Quaternion.identity,
-            _environment.transform
-        );
-
         _canSwap = true;
     }
+
 
     // TODO: refacto la fonction en plusieurs petite
     public void Swap()
     {
-        GameObject swappedObject = null;
+        Tetrimino swappedTetrimino = null;
 
         if (!_canSwap) {
             return;
         }
 
-        swappedObject = GetTetriminoObjectFromSwap();
-        SetSwappedName(swappedObject);
+        swappedTetrimino = GetTetriminoFromSwap();
+        SetSwappedName(swappedTetrimino.gameObject);
 
-        _swappableTetrimino = _currentTetrimino.gameObject;
+        _swappableTetrimino = _currentTetrimino;
 
-        _swappableTetrimino.SetActive(false);
+        _swappableTetrimino.gameObject.SetActive(false);
 
 
         SetSwappableName();
 
-        _currentTetrimino = Instantiate(
-            swappedObject,
-            transform.position,
-            Quaternion.identity,
-            _environment.transform
-        ).GetComponent<Tetrimino>();
+        _currentTetrimino = InstantiateTetrimino(swappedTetrimino);
+
         _currentTetrimino.gameObject.SetActive(true);
 
         OnSwappableChange?.Invoke(_swappableTetrimino.name.Split(' ')[0]);
 
         if (_swappableToDestroy) {
-            Destroy(_swappableToDestroy);
+            Destroy(_swappableToDestroy.gameObject);
         }
 
         _canSwap = false;
     }
 
-    private GameObject GetTetriminoObjectFromSwap()
+    private Tetrimino GetTetriminoFromSwap()
     {
-        GameObject swapped = _swappableTetrimino;
+        Tetrimino swapped = _swappableTetrimino;
 
         // it can be null and it's controlled during the destruction
         _swappableToDestroy = _swappableTetrimino;
 
         if (swapped == null) {
-            swapped = _nextTetriminos[0].gameObject;
+            swapped = _nextTetriminos[0];
             _nextTetriminos.Remove(_nextTetriminos[0]);
             AddTetriminoToBuffer();
         }
@@ -271,7 +329,7 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
     private void SetSwappedName(GameObject swapped)
     {
         swapped.name = swapped.name.RemoveContained(SWAPPABLE_NAME);
-        swapped.name = swapped.name.Split('(')[0];
+        swapped.name = swapped.name.Split('(')[0].Trim();
     }
 
     #endregion

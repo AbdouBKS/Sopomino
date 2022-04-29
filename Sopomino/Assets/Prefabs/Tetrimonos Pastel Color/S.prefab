@@ -50,6 +50,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _rotationPoint: {x: 0, y: 0, z: 0}
+  PreviewTetrimino: {fileID: 0}
 --- !u!114 &4213977394503430926
 MonoBehaviour:
   m_ObjectHideFlags: 0
