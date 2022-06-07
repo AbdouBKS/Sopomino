@@ -54,14 +54,14 @@ public class GameManager : StaticInstance<GameManager> {
 
     private void HandleStarting()
     {
-        TetriminosManager.Instance.enabled = true;
+        TetriminosManager.Instance.StartGame();
         ChangeState(GameState.Playing);
     }
 
     private void HandleLoose()
     {
         _loosingScreen.SetActive(true);
-        TetriminosManager.Instance.enabled = false;
+        TetriminosManager.Instance.EndGame();
     }
 
     private void HandleTryAgain()
@@ -72,7 +72,6 @@ public class GameManager : StaticInstance<GameManager> {
 
     private void HandleResetGame()
     {
-        TetriminosManager.Instance.enabled = false;
         ChangeState(GameState.TryAgain);
     }
 

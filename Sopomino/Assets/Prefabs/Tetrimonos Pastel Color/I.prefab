@@ -195,6 +195,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _rotationPoint: {x: 0.5, y: -0.5, z: 0}
+  PreviewTetrimino: {fileID: 0}
 --- !u!1 &7330955122056923217
 GameObject:
   m_ObjectHideFlags: 0

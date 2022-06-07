@@ -17,7 +17,8 @@ public class Tetrimino : MonoBehaviour
     private float _intervalToPress = 0.125f;
     private float _pressedTime;
 
-    private Tetrimino _previewTetrimino;
+    [HideInInspector]
+    public Tetrimino PreviewTetrimino;
 
     private int _tryKickCount = 0;
 
@@ -35,14 +36,16 @@ public class Tetrimino : MonoBehaviour
     public static event FallAction OnFalled;
 
     private void OnDisable() {
-        if (_previewTetrimino) {
-            Destroy(_previewTetrimino.gameObject);
+        if (PreviewTetrimino) {
+            PreviewTetrimino.gameObject.SetActive(false);
+            PreviewTetrimino.transform.position =  new Vector3(999, 999, 999);
         }
     }
 
-    private void Start()
-    {
-        CreatePreviewTetrimino();
+    private void OnEnable() {
+        if (PreviewTetrimino) {
+            PreviewTetrimino.gameObject.SetActive(true);
+        }
     }
 
     private void Update()
@@ -124,7 +127,7 @@ public class Tetrimino : MonoBehaviour
     private void ShotTetrimino()
     {
         if (Input.GetKeyDown(KeyCode.Space)) {
-            transform.position = _previewTetrimino.transform.position;
+            transform.position = PreviewTetrimino.transform.position;
             Fallen();
         }
     }
@@ -255,33 +258,22 @@ public class Tetrimino : MonoBehaviour
 
     private void Preview()
     {
-        _previewTetrimino.transform.position = transform.position;
-
-        while (_previewTetrimino.ValidMove())
-        {
-            _previewTetrimino.transform.position += new Vector3(0, -1, 0);
+        if (PreviewTetrimino.gameObject.activeSelf != true) {
+            PreviewTetrimino.gameObject.SetActive(true);
         }
-        _previewTetrimino.transform.position -= new Vector3(0, -1, 0);
-    }
+        PreviewTetrimino.transform.position = transform.position;
+        PreviewTetrimino.transform.rotation = transform.rotation;
 
-    private void CreatePreviewTetrimino()
-    {
-        _previewTetrimino = this.Duplicate();
-
-        _previewTetrimino.enabled = false;
-
-        foreach (Transform children in _previewTetrimino.transform)
+        while (PreviewTetrimino.ValidMove())
         {
-            Color tmp = children.GetComponent<SpriteRenderer>().color;
-            tmp.a = 0.5f;
-            children.GetComponent<SpriteRenderer>().color = tmp;
+            PreviewTetrimino.transform.position += new Vector3(0, -1, 0);
         }
+        PreviewTetrimino.transform.position -= new Vector3(0, -1, 0);
     }
 
     private void Fallen()
     {
         OnFalled?.Invoke();
-        Destroy(_previewTetrimino.gameObject);
         this.enabled = false;
     }
 
@@ -294,6 +286,5 @@ public class Tetrimino : MonoBehaviour
     private void RotateBy90(int multiplicator = 1)
     {
         transform.RotateAround(transform.TransformPoint(_rotationPoint), Vector3.forward, multiplicator * (-90));
-        _previewTetrimino.transform.RotateAround(_previewTetrimino.transform.TransformPoint(_rotationPoint), Vector3.forward, multiplicator * (-90));
     }
 }
