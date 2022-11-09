@@ -13,6 +13,9 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
     [SerializeField]
     private List<Tetrimino> _tetriminos;
 
+    [SerializeField]
+    private GameObject _emptySquare;
+
     private Dictionary<string, Tetrimino> _previewTetriminos;
     private const string PREVIEW_PREFIX = "Preview ";
 
@@ -81,7 +84,7 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
     {
         Score = 0;
         Lines = 0;
-        Grid = new Transform[MAP_WIDTH, MAP_HEIGHT];
+        Grid = new Transform[MAP_WIDTH, MAP_HEIGHT + 1];
         _nextTetriminos = new List<Tetrimino>(BUFFER_SIZE);
         _previewTetriminos = new Dictionary<string, Tetrimino>();
         _swappableTetrimino = null;
@@ -246,6 +249,73 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
         }
     }
 
+
+    /// <summary>
+    /// Add punishment lines at the bottom of the Grid
+    /// </summary>
+    /// <param name="lineNumber">number of lines to ad, default as 1</param>
+    private void AddLinesAtBottom(int lineNumber = 1)
+    {
+        int skipSquare = Random.Range(0, MAP_WIDTH - 1);
+
+        for (int i = 0; i < lineNumber; i++)
+        {
+            UpLines();
+            fillNewLine(0);
+            if (isDead()) {
+                Die();
+                return;
+            }
+        }
+
+        void UpLines()
+        {
+            for (int y = MAP_HEIGHT - 1; y >= 0; y--) {
+                upLine(y);
+            }
+        }
+
+        void upLine(int y)
+        {
+            for (int x = 0; x < MAP_WIDTH; x++) {
+                if (!Grid[x,y]) {
+                    continue;
+                }
+
+                Grid[x,y + 1] = Grid[x,y];
+                Grid[x,y + 1].transform.position += Vector3.up;
+                Grid[x,y] = null;
+            }
+        }
+
+        void fillNewLine(int y)
+        {
+            for (int x = 0; x < MAP_WIDTH; x++) {
+                if (x == skipSquare) {
+                    continue;
+                }
+                GameObject square = Instantiate(
+                    _emptySquare,
+                    new Vector3(x, y, 0),
+                    Quaternion.identity, _environment.transform
+                );
+                Grid[x,y] = square.transform;
+            }
+        }
+    }
+
+    private bool isDead()
+    {
+        for (int x = 0; x < MAP_WIDTH; x++)
+        {
+            if (Grid[x, MAP_HEIGHT]) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void Die()
     {
         _isDead = true;
@@ -266,7 +336,7 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
         }
 
         for (int i = MAP_HEIGHT - 1; i >= 0; i--) {
-            if (HasLine(i)) {
+            if (IsLineFull(i)) {
                 DeleteLine(i);
                 DownLines(i);
                 IncrementScore();
@@ -283,7 +353,7 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
         OnScoreChange?.Invoke();
     }
 
-    private bool HasLine(int i)
+    private bool IsLineFull(int i)
     {
         for (int j = 0; j < MAP_WIDTH; j++) {
             if (!Grid[j,i]) {
