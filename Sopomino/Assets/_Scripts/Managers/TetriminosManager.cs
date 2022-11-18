@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
@@ -52,6 +53,18 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
 
     public int Lines { get; private set; }
 
+    private int _punishmentCount;
+
+    public int PunishmentCount {
+        get {
+            return _punishmentCount;
+        }
+        private set {
+            _punishmentCount = Mathf.Clamp(value, 0, MAX_PUNISHMENT_COUNT);
+            OnPunishmentCountChange?.Invoke(_punishmentCount);
+        }
+    }
+
     public Transform[,] Grid { get; private set; }
 
     private const int BUFFER_SIZE = 4;
@@ -60,11 +73,24 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
 
     #endregion
 
+    #region Constants
+
+    private const int MAX_PUNISHMENT_COUNT = 20;
+
+    #endregion
+
+    #region Actions
+
+    public static Action<int> OnPunishmentCountChange;
+
+    #endregion
+
     #region Method
 
     private void OnEnable() {
         Tetrimino.OnFalled += AddTetriminoToGrid;
         Tetrimino.OnFalled += CheckLines;
+        Tetrimino.OnFalled += AddLinesAtBottom;
         Tetrimino.OnFalled += SpawnTetrimino;
     }
 
@@ -72,6 +98,7 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
     {
         Tetrimino.OnFalled -= AddTetriminoToGrid;
         Tetrimino.OnFalled -= CheckLines;
+        Tetrimino.OnFalled -= AddLinesAtBottom;
         Tetrimino.OnFalled -= SpawnTetrimino;
     }
 
@@ -90,6 +117,11 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
         _swappableTetrimino = null;
         _isDead = false;
         _canSwap = true;
+        PunishmentCount = 0;
+
+        if (_environment == null) {
+            _environment = GameObject.Find("Environment");
+        }
 
         OnScoreChange?.Invoke();
         AddTetriminoToBuffer(BUFFER_SIZE);
@@ -97,6 +129,33 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
             CreatePreviewTetriminos();
         }
         SpawnTetrimino();
+
+        void CreatePreviewTetriminos()
+        {
+            foreach (Tetrimino tetrimino in _tetriminos)
+            {
+                createPreviewTetrimono(tetrimino);
+            }
+
+            void createPreviewTetrimono(Tetrimino tetrimino)
+            {
+                Tetrimino previewTetrimino = Instantiate(tetrimino);
+
+                previewTetrimino.name = PREVIEW_PREFIX + tetrimino.name;
+                previewTetrimino.enabled = false;
+                previewTetrimino.gameObject.SetActive(false);
+
+                foreach (Transform children in previewTetrimino.transform)
+                {
+                    SpriteRenderer childrenSr = children.GetComponent<SpriteRenderer>();
+                    Color tmp = childrenSr.color;
+                    tmp.a = 0.5f;
+                    childrenSr.color = tmp;
+                }
+
+                _previewTetriminos.Add(previewTetrimino.name, previewTetrimino);
+            }
+        }
     }
 
     public void EndGame()
@@ -105,33 +164,6 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
         _nextTetriminos = null;
         _previewTetriminos = null;
         _swappableTetrimino = null;
-    }
-
-    private void CreatePreviewTetriminos()
-    {
-        foreach (Tetrimino tetrimino in _tetriminos)
-        {
-            createPreviewTetrimono(tetrimino);
-        }
-
-        void createPreviewTetrimono(Tetrimino tetrimino)
-        {
-            Tetrimino previewTetrimino = Instantiate(tetrimino);
-
-            previewTetrimino.name = PREVIEW_PREFIX + tetrimino.name;
-            previewTetrimino.enabled = false;
-            previewTetrimino.gameObject.SetActive(false);
-
-            foreach (Transform children in previewTetrimino.transform)
-            {
-                SpriteRenderer childrenSr = children.GetComponent<SpriteRenderer>();
-                Color tmp = childrenSr.color;
-                tmp.a = 0.5f;
-                childrenSr.color = tmp;
-            }
-
-            _previewTetriminos.Add(previewTetrimino.name, previewTetrimino);
-        }
     }
 
     private Tetrimino InstantiateTetrimino(Tetrimino tetrimino)
@@ -201,22 +233,22 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
         }
 
         _canSwap = false;
-    }
 
-    private Tetrimino GetTetriminoFromSwap()
-    {
-        Tetrimino swapped = _swappableTetrimino;
+        Tetrimino GetTetriminoFromSwap()
+        {
+            Tetrimino swapped = _swappableTetrimino;
 
-        // it can be null and it's controlled during the destruction
-        _swappableToDestroy = _swappableTetrimino;
+            // it can be null and it's controlled during the destruction
+            _swappableToDestroy = _swappableTetrimino;
 
-        if (swapped == null) {
-            swapped = _nextTetriminos[0];
-            _nextTetriminos.Remove(_nextTetriminos[0]);
-            AddTetriminoToBuffer();
+            if (swapped == null) {
+                swapped = _nextTetriminos[0];
+                _nextTetriminos.Remove(_nextTetriminos[0]);
+                AddTetriminoToBuffer();
+            }
+
+            return swapped;
         }
-
-        return swapped;
     }
 
     private void AddTetriminoToBuffer(int count = 1)
@@ -225,7 +257,7 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
 
         for (int i = 0; i < count; i++)
         {
-            int rand = Random.Range(0, _tetriminos.Count);
+            int rand = UnityEngine.Random.Range(0, _tetriminos.Count);
             newTetrimino = _tetriminos[rand];
             _nextTetriminos.Add(newTetrimino);
         }
@@ -249,14 +281,26 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
         }
     }
 
+    // TMP
+    private void Update() {
+        if (Input.GetKeyDown(KeyCode.M)) {
+            IncrementPunishmentCount(UnityEngine.Random.Range(0, 4));
+        }
+    }
+
+    private void IncrementPunishmentCount(int punishmentCount = 1)
+    {
+        PunishmentCount += punishmentCount;
+    }
 
     /// <summary>
     /// Add punishment lines at the bottom of the Grid
     /// </summary>
     /// <param name="lineNumber">number of lines to ad, default as 1</param>
-    private void AddLinesAtBottom(int lineNumber = 1)
+    private void AddLinesAtBottom()
     {
-        int skipSquare = Random.Range(0, MAP_WIDTH - 1);
+        int lineNumber = PunishmentCount;
+        int skipSquare = UnityEngine.Random.Range(0, MAP_WIDTH - 1);
 
         for (int i = 0; i < lineNumber; i++)
         {
@@ -267,6 +311,9 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
                 return;
             }
         }
+
+        PunishmentCount = 0;
+        return;
 
         void UpLines()
         {
@@ -376,15 +423,15 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
         for (int y = i; y < MAP_HEIGHT; y++) {
             DownLine(y);
         }
-    }
 
-    private void DownLine(int i)
-    {
-        for (int j = 0; j < MAP_WIDTH; j++) {
-            if (Grid[j,i]) {
-                Grid[j,i - 1] = Grid[j,i];
-                Grid[j,i - 1].transform.position += new Vector3(0, -1, 0);
-                Grid[j,i] = null;
+        void DownLine(int i)
+        {
+            for (int j = 0; j < MAP_WIDTH; j++) {
+                if (Grid[j,i]) {
+                    Grid[j,i - 1] = Grid[j,i];
+                    Grid[j,i - 1].transform.position += new Vector3(0, -1, 0);
+                    Grid[j,i] = null;
+                }
             }
         }
     }
