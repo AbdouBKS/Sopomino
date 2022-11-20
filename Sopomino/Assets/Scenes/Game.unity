@@ -349,7 +349,7 @@ GameObject:
   - component: {fileID: 75336365}
   - component: {fileID: 75336366}
   m_Layer: 0
-  m_Name: PunishmentBar
+  m_Name: PenalityBar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3214,6 +3214,7 @@ GameObject:
   - component: {fileID: 1246104067}
   - component: {fileID: 1246104068}
   - component: {fileID: 1246104069}
+  - component: {fileID: 1246104070}
   m_Layer: 0
   m_Name: Game Manager
   m_TagString: Untagged
@@ -3263,6 +3264,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _status: 0
+--- !u!114 &1246104070
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1246104066}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ed93b270d2f1c9458fb816c1a448acb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1280790311
 GameObject:
   m_ObjectHideFlags: 0
@@ -3868,6 +3881,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1532166589}
   - component: {fileID: 1532166590}
+  - component: {fileID: 1532166591}
   m_Layer: 0
   m_Name: Tetriminos Manager
   m_TagString: Untagged
@@ -3883,7 +3897,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1532166588}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5, y: 20, z: 0}
+  m_LocalPosition: {x: 5, y: 19, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3902,7 +3916,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed3e72cb166f6e642943c87028a9c015, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _environment: {fileID: 1005687031}
   _tetriminos:
   - {fileID: -249595740860679583, guid: 6a73d03de79339a43a96e320916ce23b, type: 3}
   - {fileID: -2295742220072288961, guid: e0e67de47e414a2409a47677838803e7, type: 3}
@@ -3911,6 +3924,20 @@ MonoBehaviour:
   - {fileID: 5317393836710843657, guid: ddefe8d9316bef7408a705f9ee5da67d, type: 3}
   - {fileID: 6926126999966510321, guid: 5668466faf5af074289f5d01ff4776dc, type: 3}
   - {fileID: 5980769959470388195, guid: fcbd38fe2f422b74bbe8bd1222664474, type: 3}
+  _environment: {fileID: 1005687031}
+--- !u!114 &1532166591
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1532166588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9420fdf325ca3434097948a4eadf6885, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _environment: {fileID: 1005687031}
   _emptySquare: {fileID: 6585377649788808603, guid: cfc2172356d6ab74c89ad5b741890210, type: 3}
 --- !u!1 &1547631751
 GameObject:

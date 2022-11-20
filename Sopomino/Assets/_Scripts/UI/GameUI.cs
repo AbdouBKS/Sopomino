@@ -42,7 +42,8 @@ public class GameUI : MonoBehaviour
     }
 
     private void OnEnable() {
-        TetriminosManager.OnScoreChange += SetScore;
+        ScoreManager.OnScoreChange += SetScore;
+        ScoreManager.OnLinesChange += SetLines;
         TetriminosManager.OnSwappableChange += SetSwappable;
         TetriminosManager.OnTetriminoBufferChange += SetNextTetriminos;
 
@@ -50,7 +51,7 @@ public class GameUI : MonoBehaviour
     }
 
     private void OnDisable() {
-        TetriminosManager.OnScoreChange -= SetScore;
+        ScoreManager.OnScoreChange -= SetScore;
         TetriminosManager.OnSwappableChange -= SetSwappable;
         TetriminosManager.OnTetriminoBufferChange -= SetNextTetriminos;
 
@@ -85,10 +86,14 @@ public class GameUI : MonoBehaviour
         _time.text = _minutes + currentTime.Seconds.ToString("00") + ":" + currentTime.Milliseconds.ToString("000");
     }
 
-    private void SetScore()
+    private void SetScore(int score)
     {
-        _scoreText.text = TetriminosManager.Instance.Score.ToString();
-        _linesText.text = TetriminosManager.Instance.Lines.ToString();
+        _scoreText.text = ScoreManager.Instance.Score.ToString();
+    }
+
+    private void SetLines(int lines)
+    {
+        _linesText.text = ScoreManager.Instance.Lines.ToString();
     }
 
     private void SetSwappable(string swappableName)

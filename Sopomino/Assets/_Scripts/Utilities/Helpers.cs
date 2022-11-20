@@ -61,16 +61,34 @@ public static class Helpers
             int roundedX = Mathf.RoundToInt(children.position.x);
             int roundedY = Mathf.RoundToInt(children.position.y);
 
-            if (roundedX < 0 || roundedX >= TetriminosManager.MAP_WIDTH || roundedY < 0 || roundedY >= TetriminosManager.MAP_HEIGHT) {
+            if (isOutSideWidth(roundedX) || isOutSideHeight(roundedY)) {
                 return false;
             }
 
-            if (TetriminosManager.Instance.Grid[roundedX, roundedY] != null) {
+            if (GridManager.Instance.Grid[roundedX, roundedY] != null) {
                 return false;
             }
         }
 
         return true;
+
+        bool isOutSideWidth(int x)
+        {
+            if (x < 0 || x >= GridManager.MAP_WIDTH) {
+                return true;
+            }
+
+            return false;
+        }
+
+        bool isOutSideHeight(int y)
+        {
+            if (y < 0 || y >= GridManager.MAP_HEIGHT) {
+                return true;
+            }
+
+            return false;
+        }
     }
 
     public static string RemoveContained(this string source, string removeString)
