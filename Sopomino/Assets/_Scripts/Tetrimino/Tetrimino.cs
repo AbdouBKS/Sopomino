@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class Tetrimino : MonoBehaviour
@@ -32,8 +33,9 @@ public class Tetrimino : MonoBehaviour
         RIGHT_AGAIN,
     }
 
-    public delegate void FallAction();
-    public static event FallAction OnFalled;
+
+    public static Action<Tetrimino> OnFalled;
+    public static Action HasFallen;
 
     private void OnDisable() {
         if (PreviewTetrimino) {
@@ -273,7 +275,9 @@ public class Tetrimino : MonoBehaviour
 
     private void Fallen()
     {
-        OnFalled?.Invoke();
+        OnFalled?.Invoke(this);
+        HasFallen?.Invoke();
+
         this.enabled = false;
     }
 
