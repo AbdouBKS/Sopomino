@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class Tetrimino : MonoBehaviour
@@ -17,30 +18,46 @@ public class Tetrimino : MonoBehaviour
     private float _intervalToPress = 0.125f;
     private float _pressedTime;
 
-    private Tetrimino _previewTetrimino;
+    [HideInInspector]
+    public Tetrimino PreviewTetrimino;
 
-    public delegate void FallAction();
-    public static event FallAction OnFalled;
+    private int _tryKickCount = 0;
+
+    private enum KickTries
+    {
+        UP,
+        UP_AGAIN,
+        LEFT,
+        LEFT_AGAIN,
+        RIGHT,
+        RIGHT_AGAIN,
+    }
+
+
+    public static Action<Tetrimino> OnFalled;
+    public static Action HasFallen;
 
     private void OnDisable() {
-        if (_previewTetrimino) {
-            Destroy(_previewTetrimino.gameObject);
+        if (PreviewTetrimino) {
+            PreviewTetrimino.gameObject.SetActive(false);
+            PreviewTetrimino.transform.position =  new Vector3(999, 999, 999);
         }
     }
 
-    private void Start()
-    {
-        CreatePreviewTetrimino();
+    private void OnEnable() {
+        if (PreviewTetrimino) {
+            PreviewTetrimino.gameObject.SetActive(true);
+        }
     }
 
     private void Update()
     {
-        if (GameManager.Instance.State == GameState.Pause) {
+        if (GameManager.Instance.State != GameState.Playing) {
             return;
         }
 
         MoveByOne();
-        Rotate();
+        GetRotate();
         SetFallSpeed();
         Preview();
         ShotTetrimino();
@@ -49,7 +66,7 @@ public class Tetrimino : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (GameManager.Instance.State == GameState.Pause) {
+        if (GameManager.Instance.State != GameState.Playing) {
             return;
         }
 
@@ -78,11 +95,11 @@ public class Tetrimino : MonoBehaviour
 
     private void Fall()
     {
-        transform.position += new Vector3(0, -1, 0);
+        transform.position += Vector3.down;
 
         // cancel the fall if it's not valid and start counting time since
         if (!this.ValidMove()) {
-            transform.position += new Vector3(0, 1, 0);
+            transform.position += Vector3.up;
             _florTouched = true;
         } else {
             _florTouched = false;
@@ -112,19 +129,16 @@ public class Tetrimino : MonoBehaviour
     private void ShotTetrimino()
     {
         if (Input.GetKeyDown(KeyCode.Space)) {
-            transform.position = _previewTetrimino.transform.position;
+            transform.position = PreviewTetrimino.transform.position;
             Fallen();
         }
     }
 
-    private void Rotate()
+    private void GetRotate()
     {
         if (Input.GetKeyDown(KeyCode.UpArrow)) {
             _arrowPressed = true;
-            RotateBy90();
-            if (!this.ValidMove()) {
-                RotateBy90(-1);
-            }
+            Rotate();
         }
     }
 
@@ -162,50 +176,108 @@ public class Tetrimino : MonoBehaviour
 
     private void MoveLeft()
     {
-        transform.position += new Vector3(-1, 0, 0);
+        transform.position += Vector3.left;
         if (!this.ValidMove()) {
-            transform.position += new Vector3(1, 0, 0);
+            transform.position += Vector3.right;
         }
     }
 
     private void MoveRight()
     {
-        transform.position += new Vector3(1, 0, 0);
+        transform.position += Vector3.right;
         if (!this.ValidMove()) {
-            transform.position += new Vector3(-1, 0, 0);
+            transform.position += Vector3.left;
+
+        }
+    }
+
+    private void MoveUp()
+    {
+        transform.position += Vector3.up;
+        if (!this.ValidMove()) {
+            transform.position += Vector3.down;
+        }
+    }
+
+    private void Rotate()
+    {
+        Vector3 initialPos = transform.position;
+
+        RotateBy90();
+        if (!this.ValidMove()) {
+            TryKick(initialPos);
+        }
+    }
+
+    private void TryKick(Vector3 initialPos)
+    {
+        switch (_tryKickCount)
+        {
+            case (int)KickTries.UP:
+                FirstTryKickDirection(Vector3.up);
+                break;
+            case (int)KickTries.UP_AGAIN:
+                SecondTryKickDirection(Vector3.up);
+                break;
+            case (int)KickTries.LEFT:
+                FirstTryKickDirection(Vector3.left);
+                break;
+            case (int)KickTries.LEFT_AGAIN:
+                SecondTryKickDirection(Vector3.left);
+                break;
+            case (int)KickTries.RIGHT:
+                FirstTryKickDirection(Vector3.right);
+                break;
+            case (int)KickTries.RIGHT_AGAIN:
+                SecondTryKickDirection(Vector3.right);
+                break;
+            default:
+                _tryKickCount = 0;
+                RotateBy90(-1);
+                transform.position = initialPos;
+                break;
+        }
+
+        void FirstTryKickDirection(Vector3 direction)
+        {
+            transform.position += direction;
+            if (!this.ValidMove()) {
+                _tryKickCount++;
+                TryKick(initialPos);
+            }
+        }
+
+        void SecondTryKickDirection(Vector3 direction)
+        {
+            transform.position += direction;
+            if (!this.ValidMove()) {
+                _tryKickCount++;
+                transform.position = initialPos;
+                TryKick(initialPos);
+            }
         }
     }
 
     private void Preview()
     {
-
-        _previewTetrimino.transform.position = transform.position;
-
-        while (_previewTetrimino.ValidMove())
-        {
-            _previewTetrimino.transform.position += new Vector3(0, -1, 0);
+        if (PreviewTetrimino.gameObject.activeSelf != true) {
+            PreviewTetrimino.gameObject.SetActive(true);
         }
-        _previewTetrimino.transform.position -= new Vector3(0, -1, 0);
-    }
+        PreviewTetrimino.transform.position = transform.position;
+        PreviewTetrimino.transform.rotation = transform.rotation;
 
-    private void CreatePreviewTetrimino()
-    {
-        _previewTetrimino = this.Duplicate();
-
-        _previewTetrimino.enabled = false;
-
-        foreach (Transform children in _previewTetrimino.transform)
+        while (PreviewTetrimino.ValidMove())
         {
-            Color tmp = children.GetComponent<SpriteRenderer>().color;
-            tmp.a = 0.5f;
-            children.GetComponent<SpriteRenderer>().color = tmp;
+            PreviewTetrimino.transform.position += new Vector3(0, -1, 0);
         }
+        PreviewTetrimino.transform.position -= new Vector3(0, -1, 0);
     }
 
     private void Fallen()
     {
-        OnFalled?.Invoke();
-        Destroy(_previewTetrimino.gameObject);
+        OnFalled?.Invoke(this);
+        HasFallen?.Invoke();
+
         this.enabled = false;
     }
 
@@ -218,6 +290,5 @@ public class Tetrimino : MonoBehaviour
     private void RotateBy90(int multiplicator = 1)
     {
         transform.RotateAround(transform.TransformPoint(_rotationPoint), Vector3.forward, multiplicator * (-90));
-        _previewTetrimino.transform.RotateAround(_previewTetrimino.transform.TransformPoint(_rotationPoint), Vector3.forward, multiplicator * (-90));
     }
 }
