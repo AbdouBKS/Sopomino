@@ -49,7 +49,7 @@ public class GridManager : Singleton<GridManager>
     {
         GameManager.OnBeforeStateChanged +=CleanTetriminos;
         Tetrimino.OnFalled += AddTetriminoToGrid;
-        Tetrimino.OnFalled += CheckLines;
+        Tetrimino.OnFalled += CheckFullLines;
         Tetrimino.HasFallen += AddPenalityLines;
 
     }
@@ -58,7 +58,7 @@ public class GridManager : Singleton<GridManager>
     {
         GameManager.OnBeforeStateChanged -= CleanTetriminos;
         Tetrimino.OnFalled -= AddTetriminoToGrid;
-        Tetrimino.OnFalled -= CheckLines;
+        Tetrimino.OnFalled -= CheckFullLines;
         Tetrimino.HasFallen -= AddPenalityLines;
     }
 
@@ -122,7 +122,7 @@ public class GridManager : Singleton<GridManager>
         }
     }
 
-    private void CheckLines(Tetrimino tetrimino)
+    private void CheckFullLines(Tetrimino tetrimino)
     {
         int combo = 0;
 
