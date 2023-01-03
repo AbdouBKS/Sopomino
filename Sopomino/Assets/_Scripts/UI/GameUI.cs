@@ -155,6 +155,11 @@ public class GameUI : MonoBehaviour
 
     public void BUTTON_GoToMenu()
     {
+        if (Application.platform == RuntimePlatform.WebGLPlayer) {
+            SceneManager.LoadScene(ConstInfo.WEBGL_MAIN_MENU_SCEN);
+            return;
+        }
+
         SceneManager.LoadScene(ConstInfo.MAIN_MENU_SCENE);
     }
 
