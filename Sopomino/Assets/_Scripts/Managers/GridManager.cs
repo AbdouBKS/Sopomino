@@ -86,11 +86,11 @@ public class GridManager : Singleton<GridManager>
     }
 
     // TMP
-    private void Update() {
-        if (Input.GetKeyDown(KeyCode.M)) {
-            IncrementPenalityCount(UnityEngine.Random.Range(0, 4));
-        }
-    }
+    // private void Update() {
+    //     if (Input.GetKeyDown(KeyCode.M)) {
+    //         IncrementPenalityCount(UnityEngine.Random.Range(0, 4));
+    //     }
+    // }
 
     public void CleanTetriminos(GameState state)
     {
