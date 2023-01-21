@@ -20,13 +20,22 @@ namespace MyLobby {
 
             refreshButton.onClick.AddListener(RefreshButtonClick);
             createLobbyButton.onClick.AddListener(CreateLobbyButtonClick);
-        }
 
-        private void Start() {
             LobbyManager.OnLobbyListChanged += LobbyManager_OnLobbyListChanged;
             LobbyManager.OnJoinedLobby += LobbyManager_OnJoinedLobby;
             LobbyManager.OnLeftLobby += LobbyManager_OnLeftLobby;
             LobbyManager.OnKickedFromLobby += LobbyManager_OnKickedFromLobby;
+            AuthenticateUI.OnAuthenticated += AuthenticateUI_OnAuthenticated;
+
+            Hide();
+        }
+
+        private void OnDestroy() {
+            LobbyManager.OnLobbyListChanged -= LobbyManager_OnLobbyListChanged;
+            LobbyManager.OnJoinedLobby -= LobbyManager_OnJoinedLobby;
+            LobbyManager.OnLeftLobby -= LobbyManager_OnLeftLobby;
+            LobbyManager.OnKickedFromLobby -= LobbyManager_OnKickedFromLobby;
+            AuthenticateUI.OnAuthenticated -= AuthenticateUI_OnAuthenticated;
         }
 
         private void LobbyManager_OnKickedFromLobby() {
@@ -43,6 +52,10 @@ namespace MyLobby {
 
         private void LobbyManager_OnLobbyListChanged(List<Lobby> lobbies) {
             UpdateLobbyList(lobbies);
+        }
+
+        private void AuthenticateUI_OnAuthenticated() {
+            Show();
         }
 
         private void UpdateLobbyList(List<Lobby> lobbyList) {
@@ -73,6 +86,7 @@ namespace MyLobby {
         }
 
         private void Show() {
+            Debug.Log("Show lobby list");
             gameObject.SetActive(true);
         }
 

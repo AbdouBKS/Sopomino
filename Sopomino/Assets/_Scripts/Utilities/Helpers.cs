@@ -25,11 +25,12 @@ public static class Helpers
     /// </summary>
     public static T Duplicate<T>(this T original) where T : MonoBehaviour
     {
+        var transform = original.transform;
         T duplicated = Object.Instantiate(
             original,
-            original.transform.position,
+            transform.position,
             Quaternion.identity,
-            original.transform.parent
+            transform.parent
         );
 
         return duplicated;
@@ -44,7 +45,7 @@ public static class Helpers
     /// </summary>
     public static GameObject Duplicate(this GameObject original)
     {
-        GameObject duplicated = Object.Instantiate(
+        var duplicated = Object.Instantiate(
             original,
             original.transform.position,
             Quaternion.identity,
@@ -58,10 +59,11 @@ public static class Helpers
     {
         foreach (Transform children in tetrimino.transform)
         {
-            int roundedX = Mathf.RoundToInt(children.position.x);
-            int roundedY = Mathf.RoundToInt(children.position.y);
+            var position = children.position;
+            var roundedX = Mathf.RoundToInt(position.x);
+            var roundedY = Mathf.RoundToInt(position.y);
 
-            if (isOutSideWidth(roundedX) || isOutSideHeight(roundedY)) {
+            if (IsOutSideWidth(roundedX) || IsOutSideHeight(roundedY)) {
                 return false;
             }
 
@@ -72,18 +74,18 @@ public static class Helpers
 
         return true;
 
-        bool isOutSideWidth(int x)
+        bool IsOutSideWidth(int x)
         {
-            if (x < 0 || x >= GridManager.MAP_WIDTH) {
+            if (x < 0 || x >= GridManager.MapWidth) {
                 return true;
             }
 
             return false;
         }
 
-        bool isOutSideHeight(int y)
+        bool IsOutSideHeight(int y)
         {
-            if (y < 0 || y >= GridManager.MAP_HEIGHT) {
+            if (y < 0 || y >= GridManager.MapHeight) {
                 return true;
             }
 

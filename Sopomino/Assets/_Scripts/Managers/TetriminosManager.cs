@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
+using UnityEngine.Serialization;
+
 
 [RequireComponent(typeof(GridManager))]
 public class TetriminosManager : StaticInstance<TetriminosManager>
@@ -9,21 +11,17 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
 
     #region Fields
 
-    [SerializeField]
-    private List<Tetrimino> _tetriminos;
+    [FormerlySerializedAs("_tetriminos")] [SerializeField]
+    private List<Tetrimino> tetriminos;
 
-    [SerializeField]
-    private GameObject _environment;
+    [FormerlySerializedAs("_environment")] [SerializeField]
+    private GameObject environment;
 
     private Dictionary<string, Tetrimino> _previewTetriminos;
-    private const string PREVIEW_PREFIX = "Preview ";
+    private const string PreviewPrefix = "Preview ";
 
-    [HideInInspector]
-    public ReadOnlyCollection<Tetrimino> NextTetriminos {
-        get {
-            return _nextTetriminos.AsReadOnly();
-        }
-    }
+    public ReadOnlyCollection<Tetrimino> NextTetriminos => _nextTetriminos.AsReadOnly();
+
     private List<Tetrimino> _nextTetriminos;
 
     private Tetrimino _currentTetrimino;
@@ -38,9 +36,9 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
     public delegate void TetriminoBufferAction();
     public static event TetriminoBufferAction OnTetriminoBufferChange;
 
-    private const string SWAPPABLE_NAME = "Swappable";
+    private const string SwappableName = "Swappable";
 
-    private const int BUFFER_SIZE = 4;
+    private const int BufferSize = 4;
 
     private bool _isDead;
 
@@ -48,7 +46,7 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
 
     #region Constants
 
-    private const int MAX_PUNISHMENT_COUNT = 20;
+    private const int MaxPunishmentCount = 20;
 
     #endregion
 
@@ -76,34 +74,34 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
 
     public void StartGame()
     {
-        _nextTetriminos = new List<Tetrimino>(BUFFER_SIZE);
+        _nextTetriminos = new List<Tetrimino>(BufferSize);
         _previewTetriminos = new Dictionary<string, Tetrimino>();
         _swappableTetrimino = null;
         _isDead = false;
         _canSwap = true;
 
-        if (_environment == null) {
-            _environment = GameObject.Find("Environment");
+        if (environment == null) {
+            environment = GameObject.Find("Environment");
         }
 
-        AddTetriminoToBuffer(BUFFER_SIZE);
-        if (_previewTetriminos.Count != _tetriminos.Count) {
+        AddTetriminoToBuffer(BufferSize);
+        if (_previewTetriminos.Count != tetriminos.Count) {
             CreatePreviewTetriminos();
         }
         SpawnTetrimino();
 
         void CreatePreviewTetriminos()
         {
-            foreach (Tetrimino tetrimino in _tetriminos)
+            foreach (Tetrimino tetrimino in tetriminos)
             {
-                createPreviewTetrimono(tetrimino);
+                CreatePreviewTetrimono(tetrimino);
             }
 
-            void createPreviewTetrimono(Tetrimino tetrimino)
+            void CreatePreviewTetrimono(Tetrimino tetrimino)
             {
                 Tetrimino previewTetrimino = Instantiate(tetrimino);
 
-                previewTetrimino.name = PREVIEW_PREFIX + tetrimino.name;
+                previewTetrimino.name = PreviewPrefix + tetrimino.name;
                 previewTetrimino.enabled = false;
                 previewTetrimino.gameObject.SetActive(false);
 
@@ -131,7 +129,7 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
     {
         Tetrimino newTetrimino = Instantiate(tetrimino);
 
-        Tetrimino previewTetrimino = _previewTetriminos[PREVIEW_PREFIX + tetrimino.name];
+        Tetrimino previewTetrimino = _previewTetriminos[PreviewPrefix + tetrimino.name];
 
         previewTetrimino.gameObject.SetActive(true);
         newTetrimino.PreviewTetrimino = previewTetrimino;
@@ -145,7 +143,7 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
             tetrimino,
             transform.position,
             Quaternion.identity,
-            _environment.transform
+            environment.transform
         );
     }
 
@@ -168,11 +166,9 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
         _canSwap = true;
     }
 
-
-    // TODO: refacto la fonction en plusieurs petite
     public void Swap()
     {
-        Tetrimino swappedTetrimino = null;
+        Tetrimino swappedTetrimino;
 
         if (!_canSwap) {
             return;
@@ -225,12 +221,12 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
 
     private void AddTetriminoToBuffer(int count = 1)
     {
-        Tetrimino newTetrimino = null;
+        Tetrimino newTetrimino;
 
         for (int i = 0; i < count; i++)
         {
-            int rand = UnityEngine.Random.Range(0, _tetriminos.Count);
-            newTetrimino = _tetriminos[rand];
+            int rand = UnityEngine.Random.Range(0, tetriminos.Count);
+            newTetrimino = tetriminos[rand];
             _nextTetriminos.Add(newTetrimino);
         }
 
@@ -241,12 +237,12 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
     {
         string shape = _swappableTetrimino.name.Split('(')[0];
 
-        _swappableTetrimino.name = shape + " " + SWAPPABLE_NAME;
+        _swappableTetrimino.name = shape + " " + SwappableName;
     }
 
     private void SetSwappedName(GameObject swapped)
     {
-        swapped.name = swapped.name.RemoveContained(SWAPPABLE_NAME);
+        swapped.name = swapped.name.RemoveContained(SwappableName);
         swapped.name = swapped.name.Split('(')[0].Trim();
     }
 
