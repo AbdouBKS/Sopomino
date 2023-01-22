@@ -1,18 +1,10 @@
 using System;
-using UnityEngine;
 
 public class GameManager : StaticInstance<GameManager> {
     public static event Action<GameState> OnBeforeStateChanged;
     public static event Action<GameState> OnAfterStateChanged;
 
-    [Header("UI")]
-    [SerializeField]
-    private GameObject _loosingScreen;
-
-    [SerializeField]
-    private GameObject _pause;
-
-    public GameState State { get; private set; }
+    public GameState State { get; private set; } = GameState.Initiating;
 
     void Start() => ChangeState(GameState.Starting);
 
@@ -21,6 +13,9 @@ public class GameManager : StaticInstance<GameManager> {
 
         State = newState;
         switch (newState) {
+            case GameState.Initiating:
+                HandleInitiating();
+                break;
             case GameState.Starting:
                 HandleStarting();
                 break;
@@ -47,9 +42,12 @@ public class GameManager : StaticInstance<GameManager> {
 
     }
 
+    private void HandleInitiating()
+    {
+    }
+
     private void HandlePause()
     {
-        _pause.SetActive(true);
     }
 
     private void HandleStarting()
@@ -61,7 +59,6 @@ public class GameManager : StaticInstance<GameManager> {
 
     private void HandleLoose()
     {
-        _loosingScreen.SetActive(true);
         TetriminosManager.Instance.EndGame();
         GridManager.Instance.EndGame();
     }
@@ -78,18 +75,12 @@ public class GameManager : StaticInstance<GameManager> {
 
     private void HandlePlaying()
     {
-        ResetUI();
-    }
-
-    private void ResetUI()
-    {
-        _loosingScreen.SetActive(false);
-        _pause.SetActive(false);
     }
 }
 
 [Serializable]
 public enum GameState {
+    Initiating,
     Starting,
     Playing,
     Loose,

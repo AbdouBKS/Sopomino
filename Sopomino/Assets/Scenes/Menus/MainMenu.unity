@@ -504,7 +504,6 @@ MonoBehaviour:
   _mainMenu: {fileID: 1689274176}
   _credit: {fileID: 1072475230}
   _controls: {fileID: 7971616257142684812, guid: 051052e0cc1194d4ea99f82b278395ba, type: 3}
-  _menus: []
 --- !u!1 &645721346
 GameObject:
   m_ObjectHideFlags: 0
@@ -697,7 +696,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.16862746, g: 0.16862746, b: 0.16862746, a: 0}
+  m_BackGroundColor: {r: 0.19607845, g: 0.16470589, b: 0.16470589, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0

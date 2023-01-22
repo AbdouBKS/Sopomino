@@ -4,164 +4,47 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
 public class GameUI : MonoBehaviour
 {
     #region Fields
 
-    [Header("UI Datas")]
-    [SerializeField]
-    private TextMeshProUGUI _scoreText;
+    [Header("UI")]
 
     [SerializeField]
-    private TextMeshProUGUI _linesText;
+    private GameObject loosingScreen;
 
     [SerializeField]
-    private TextMeshProUGUI _time;
-    private string _minutes;
-
-    [Header("Tetriminos information")]
-    [SerializeField]
-    private Image _swappableImage;
-
-    [SerializeField]
-    private List<Image> _nextTetriminosImage;
-    private const string EMPTY_LOGO = "Empty";
-
-    [SerializeField]
-    private List<Sprite> _tetriminosLogo;
-    private Dictionary<string, Sprite> _tetriminoLogoDict;
+    private GameObject pause;
 
     #endregion
 
-    #region Methods
-
-    private void Awake()
-    {
-        InitTetriminosLogoDict();
-    }
-
     private void OnEnable() {
-        ScoreManager.OnScoreChange += SetScore;
-        ScoreManager.OnLinesChange += SetLines;
-        TetriminosManager.OnSwappableChange += SetSwappable;
-        TetriminosManager.OnTetriminoBufferChange += SetNextTetriminos;
-
-        GameManager.OnAfterStateChanged += ResetGameUI;
+        GameManager.OnAfterStateChanged += SetLoosingScreen;
+        GameManager.OnAfterStateChanged += SetPauseScreen;
     }
 
     private void OnDisable() {
-        ScoreManager.OnScoreChange -= SetScore;
-        TetriminosManager.OnSwappableChange -= SetSwappable;
-        TetriminosManager.OnTetriminoBufferChange -= SetNextTetriminos;
-
-        GameManager.OnAfterStateChanged -= ResetGameUI;
+        GameManager.OnAfterStateChanged -= SetLoosingScreen;
+        GameManager.OnAfterStateChanged -= SetPauseScreen;
     }
 
-    private void Update()
-    {
-        if (GameManager.Instance.State != GameState.Pause) {
-            SetTimerText();
-        }
-        HandleEscapeKey();
-    }
-
-    private void HandleEscapeKey()
-    {
-        if (GameManager.Instance.State != GameState.Loose &&
-            Input.GetKeyDown(KeyCode.Escape)) {
-            if (GameManager.Instance.State == GameState.Pause) {
-                BUTTON_Resume();
-                return;
-            }
-            BUTTON_Pause();
-        }
-    }
-
-    private void SetTimerText()
-    {
-        TimeSpan currentTime = StopWatchManager.Instance.CurrentTime;
-
-        _minutes = currentTime.Minutes > 0 ? currentTime.Minutes.ToString("00") + ":" : "";
-        _time.text = _minutes + currentTime.Seconds.ToString("00") + ":" + currentTime.Milliseconds.ToString("000");
-    }
-
-    private void SetScore(int score)
-    {
-        _scoreText.text = ScoreManager.Instance.Score.ToString();
-    }
-
-    private void SetLines(int lines)
-    {
-        _linesText.text = ScoreManager.Instance.Lines.ToString();
-    }
-
-    private void SetSwappable(string swappableName)
-    {
-        _swappableImage.sprite = _tetriminoLogoDict[swappableName];
-    }
-
-    private void SetNextTetriminos()
-    {
-        int index = 0;
-
-        foreach (var nextTetrimino in TetriminosManager.Instance.NextTetriminos)
-        {
-            _nextTetriminosImage[index].sprite = _tetriminoLogoDict[nextTetrimino.name.Split(' ')[0]];
-            index++;
-        }
-    }
-
-    private void InitTetriminosLogoDict()
-    {
-        _tetriminoLogoDict = new Dictionary<string, Sprite>(_tetriminosLogo.Count);
-
-        foreach (var tetriminoLogo in _tetriminosLogo) {
-            _tetriminoLogoDict.Add(tetriminoLogo.name, tetriminoLogo);
-        }
-    }
-
-    private void ResetGameUI(GameState newState)
-    {
-        if (newState != GameState.Starting) {
+    private void SetLoosingScreen(GameState state) {
+        if (state != GameState.Loose) {
+            loosingScreen.SetActive(false);
             return;
         }
 
-        SetSwappable(EMPTY_LOGO);
+        loosingScreen.SetActive(true);
     }
 
-    public void BUTTON_Pause()
-    {
-        GameManager.Instance.ChangeState(GameState.Pause);
-    }
-
-    public void BUTTON_Resume()
-    {
-        GameManager.Instance.ChangeState(GameState.Playing);
-    }
-
-    public void BUTTON_ResetGame()
-    {
-        GameManager.Instance.ChangeState(GameState.ResetGame);
-    }
-
-    public void BUTTON_Quit()
-    {
-        #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-        #endif
-        Application.Quit();
-    }
-
-    public void BUTTON_GoToMenu()
-    {
-        if (Application.platform == RuntimePlatform.WebGLPlayer) {
-            SceneManager.LoadScene(ConstInfo.WEBGL_MAIN_MENU_SCEN);
+    private void SetPauseScreen(GameState state) {
+        if (state != GameState.Pause) {
+            pause.SetActive(false);
             return;
         }
 
-        SceneManager.LoadScene(ConstInfo.MAIN_MENU_SCENE);
+        pause.SetActive(true);
     }
-
-    #endregion
 }
