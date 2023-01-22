@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,9 +10,14 @@ namespace MyLobby
 
         [SerializeField] private Button authenticateButton;
 
+        public static event Action OnAuthenticated;
+
         private void Awake() {
             authenticateButton.onClick.AddListener(() => {
                 LobbyManager.Instance.Authenticate(EditPlayerName.Instance.GetPlayerName());
+
+                OnAuthenticated?.Invoke();
+
                 Hide();
             });
         }
