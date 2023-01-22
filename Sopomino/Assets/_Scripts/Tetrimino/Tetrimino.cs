@@ -1,41 +1,40 @@
 using System;
 using UnityEngine;
+using Unity.Netcode;
 
-public class Tetrimino : MonoBehaviour
+public class Tetrimino : NetworkBehaviour
 {
-    [SerializeField] private Vector3 _rotationPoint = Vector3.zero;
+    [SerializeField] private Vector3 rotationPoint = Vector3.zero;
 
-    private bool _arrowPressed = false;
+    private bool _arrowPressed;
 
-    private const float TIME_TO_FALL = 0.85f;
-    private float _timeToFall = TIME_TO_FALL;
-    private float _fallTime = 0f;
+    private const float TimeToFall = 0.85f;
+    private float _timeToFall = TimeToFall;
+    private float _fallTime;
 
-    private bool _florTouched = false;
+    private bool _florTouched;
     private float _allowedFlorTouchedTime = 4f;
-    private float _florTouchedTime = 0f;
+    private float _florTouchedTime;
 
     private float _intervalToPress = 0.125f;
     private float _pressedTime;
 
-    [HideInInspector]
-    public Tetrimino PreviewTetrimino;
+    [NonSerialized] public Tetrimino PreviewTetrimino;
 
-    private int _tryKickCount = 0;
-
-    private enum KickTries
-    {
-        UP,
-        UP_AGAIN,
-        LEFT,
-        LEFT_AGAIN,
-        RIGHT,
-        RIGHT_AGAIN,
-    }
-
+    private int _tryKickCount;
 
     public static Action<Tetrimino> OnFalled;
     public static Action HasFallen;
+
+    private enum KickTries
+    {
+        Up,
+        UpAgain,
+        Left,
+        LeftAgain,
+        Right,
+        RightAgain,
+    }
 
     private void OnDisable() {
         if (PreviewTetrimino) {
@@ -105,7 +104,7 @@ public class Tetrimino : MonoBehaviour
             _florTouched = false;
         }
 
-        if ((_florTouched && !_arrowPressed && _florTouchedTime > TIME_TO_FALL) || (_florTouchedTime > _allowedFlorTouchedTime)) {
+        if ((_florTouched && !_arrowPressed && _florTouchedTime > TimeToFall) || (_florTouchedTime > _allowedFlorTouchedTime)) {
             Fallen();
         }
     }
@@ -116,7 +115,7 @@ public class Tetrimino : MonoBehaviour
             _timeToFall = 0f;
             return;
         }
-        _timeToFall = TIME_TO_FALL;
+        _timeToFall = TimeToFall;
     }
 
     private void Swap()
@@ -170,7 +169,6 @@ public class Tetrimino : MonoBehaviour
             MoveRight();
             _pressedTime = 0f;
             _arrowPressed = true;
-            return;
         }
     }
 
@@ -191,14 +189,6 @@ public class Tetrimino : MonoBehaviour
         }
     }
 
-    private void MoveUp()
-    {
-        transform.position += Vector3.up;
-        if (!this.ValidMove()) {
-            transform.position += Vector3.down;
-        }
-    }
-
     private void Rotate()
     {
         Vector3 initialPos = transform.position;
@@ -213,22 +203,22 @@ public class Tetrimino : MonoBehaviour
     {
         switch (_tryKickCount)
         {
-            case (int)KickTries.UP:
+            case (int)KickTries.Up:
                 FirstTryKickDirection(Vector3.up);
                 break;
-            case (int)KickTries.UP_AGAIN:
+            case (int)KickTries.UpAgain:
                 SecondTryKickDirection(Vector3.up);
                 break;
-            case (int)KickTries.LEFT:
+            case (int)KickTries.Left:
                 FirstTryKickDirection(Vector3.left);
                 break;
-            case (int)KickTries.LEFT_AGAIN:
+            case (int)KickTries.LeftAgain:
                 SecondTryKickDirection(Vector3.left);
                 break;
-            case (int)KickTries.RIGHT:
+            case (int)KickTries.Right:
                 FirstTryKickDirection(Vector3.right);
                 break;
-            case (int)KickTries.RIGHT_AGAIN:
+            case (int)KickTries.RightAgain:
                 SecondTryKickDirection(Vector3.right);
                 break;
             default:
@@ -263,8 +253,11 @@ public class Tetrimino : MonoBehaviour
         if (PreviewTetrimino.gameObject.activeSelf != true) {
             PreviewTetrimino.gameObject.SetActive(true);
         }
-        PreviewTetrimino.transform.position = transform.position;
-        PreviewTetrimino.transform.rotation = transform.rotation;
+
+        var previewTetriminoTransform = PreviewTetrimino.transform;
+        var tetriminoTransform = transform;
+        previewTetriminoTransform.position = tetriminoTransform.position;
+        previewTetriminoTransform.rotation = tetriminoTransform.rotation;
 
         while (PreviewTetrimino.ValidMove())
         {
@@ -287,8 +280,8 @@ public class Tetrimino : MonoBehaviour
         _pressedTime = 0f;
     }
 
-    private void RotateBy90(int multiplicator = 1)
+    private void RotateBy90(int multiplier = 1)
     {
-        transform.RotateAround(transform.TransformPoint(_rotationPoint), Vector3.forward, multiplicator * (-90));
+        transform.RotateAround(transform.TransformPoint(rotationPoint), Vector3.forward, multiplier * (-90));
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class GridManager : Singleton<GridManager>
 {
@@ -8,40 +9,38 @@ public class GridManager : Singleton<GridManager>
 
     public Transform[,] Grid { get; private set; }
 
-    [SerializeField] private GameObject _environment;
+    [SerializeField] private GameObject tetriminosEnvironment;
 
-    private int _penalityCount;
+    private int _penaltyCount;
 
-    [SerializeField] private GameObject _emptySquare;
+    [SerializeField] private GameObject emptySquare;
 
     private bool _isDead;
 
-    public int PenalityCount {
-        get {
-            return _penalityCount;
-        }
+    public int penaltyCount {
+        get => _penaltyCount;
         private set {
-            _penalityCount = Mathf.Clamp(value, 0, MAX_PENALITY_COUNT);
-            OnPenalityCountChange?.Invoke(_penalityCount);
+            _penaltyCount = Mathf.Clamp(value, 0, MaxPenaltyCount);
+            OnPenaltyCountChange?.Invoke(_penaltyCount);
         }
     }
 
     #region Actions
 
-    public static Action<int> OnPenalityCountChange;
+    public static Action<int> OnPenaltyCountChange;
     public static Action<int> OnLinesComplete;
 
     #endregion
 
     #region Constants
 
-    public const int MAP_WIDTH = 10;
-    private const int MAX_PENALITY_COUNT = 20;
-    public const int MAP_HEIGHT = 22;
+    public const int MapWidth = 10;
+    public const int MapHeight = 22;
+    private const int MaxPenaltyCount = 20;
 
-    #endregion
+    #endregion Constants
 
-    #endregion
+    #endregion Fields
 
     #region Methods
 
@@ -50,7 +49,7 @@ public class GridManager : Singleton<GridManager>
         GameManager.OnBeforeStateChanged +=CleanTetriminos;
         Tetrimino.OnFalled += AddTetriminoToGrid;
         Tetrimino.OnFalled += CheckFullLines;
-        Tetrimino.HasFallen += AddPenalityLines;
+        Tetrimino.HasFallen += AddPenaltyLines;
 
     }
 
@@ -59,25 +58,25 @@ public class GridManager : Singleton<GridManager>
         GameManager.OnBeforeStateChanged -= CleanTetriminos;
         Tetrimino.OnFalled -= AddTetriminoToGrid;
         Tetrimino.OnFalled -= CheckFullLines;
-        Tetrimino.HasFallen -= AddPenalityLines;
+        Tetrimino.HasFallen -= AddPenaltyLines;
     }
 
     protected override void Awake()
     {
         base.Awake();
-        if (_environment == null) {
-            _environment = GameObject.Find("Environment");
+        if (tetriminosEnvironment == null) {
+            tetriminosEnvironment = GameObject.Find("Environment");
         }
-        Grid = new Transform[MAP_WIDTH, MAP_HEIGHT + 1];
+        Grid = new Transform[MapWidth, MapHeight + 1];
     }
 
     public void StartGame()
     {
         if (Grid == null) {
-            Grid = new Transform[MAP_WIDTH, MAP_HEIGHT + 1];
+            Grid = new Transform[MapWidth, MapHeight + 1];
         }
         _isDead = false;
-        PenalityCount = 0;
+        penaltyCount = 0;
     }
 
     public void EndGame()
@@ -88,7 +87,7 @@ public class GridManager : Singleton<GridManager>
     // TMP
     // private void Update() {
     //     if (Input.GetKeyDown(KeyCode.M)) {
-    //         IncrementPenalityCount(UnityEngine.Random.Range(0, 4));
+    //         IncrementPenaltyCount(UnityEngine.Random.Range(0, 4));
     //     }
     // }
 
@@ -98,21 +97,22 @@ public class GridManager : Singleton<GridManager>
             return;
         }
 
-        _environment.transform.DestroyChildren();
+        tetriminosEnvironment.transform.DestroyChildren();
     }
 
-    private void IncrementPenalityCount(int penalityCount = 1)
+    private void IncrementPenaltyCount(int count = 1)
     {
-        PenalityCount += penalityCount;
+        penaltyCount += count;
     }
 
     public void AddTetriminoToGrid(Tetrimino tetrimino)
     {
         foreach (Transform children in tetrimino.transform) {
-            int roundedX = Mathf.RoundToInt(children.position.x);
-            int roundedY = Mathf.RoundToInt(children.position.y);
+            var position = children.position;
+            var roundedX = Mathf.RoundToInt(position.x);
+            var roundedY = Mathf.RoundToInt(position.y);
 
-            if (roundedY >= MAP_HEIGHT - 1) {
+            if (roundedY >= MapHeight - 1) {
                 _isDead = true;
                 Die();
                 return;
@@ -148,7 +148,7 @@ public class GridManager : Singleton<GridManager>
 
         void DeleteLine(int i)
         {
-            for (int j = 0; j < MAP_WIDTH; j++) {
+            for (int j = 0; j < MapWidth; j++) {
                 Destroy(Grid[j,i].gameObject);
                 Grid[j,i] = null;
             }
@@ -156,14 +156,14 @@ public class GridManager : Singleton<GridManager>
 
         void DownLines(int i)
         {
-            for (int y = i; y < MAP_HEIGHT; y++) {
+            for (int y = i; y < MapHeight; y++) {
                 DownLine(y);
             }
         }
 
         void DownLine(int i)
         {;
-            for (int j = 0; j < MAP_WIDTH; j++) {
+            for (int j = 0; j < MapWidth; j++) {
                 if (Grid[j,i]) {
                     Grid[j,i - 1] = Grid[j,i];
                     Grid[j,i - 1].transform.position += Vector3.down;
@@ -190,7 +190,7 @@ public class GridManager : Singleton<GridManager>
 
         bool IsLineFull(int i)
         {
-            for (int j = 0; j < MAP_WIDTH; j++) {
+            for (int j = 0; j < MapWidth; j++) {
                 if (!Grid[j,i]) {
                     return false;
                 }
@@ -200,36 +200,36 @@ public class GridManager : Singleton<GridManager>
     }
 
     /// <summary>
-    /// Add penality lines at the bottom of the Grid
+    /// Add penalty lines at the bottom of the Grid
     /// </summary>
-    private void AddPenalityLines()
+    private void AddPenaltyLines()
     {
-        int lineNumber = PenalityCount;
-        int skipSquare = UnityEngine.Random.Range(0, MAP_WIDTH - 1);
+        int lineNumber = penaltyCount;
+        int skipSquare = UnityEngine.Random.Range(0, MapWidth - 1);
 
         for (int i = 0; i < lineNumber; i++)
         {
             UpLines();
-            fillNewLine(0);
-            if (isDead()) {
+            FillNewLine(0);
+            if (IsDead()) {
                 Die();
                 return;
             }
         }
 
-        PenalityCount = 0;
+        penaltyCount = 0;
         return;
 
         void UpLines()
         {
-            for (int y = MAP_HEIGHT - 1; y >= 0; y--) {
-                upLine(y);
+            for (int y = MapHeight - 1; y >= 0; y--) {
+                UpLine(y);
             }
         }
 
-        void upLine(int y)
+        void UpLine(int y)
         {
-            for (int x = 0; x < MAP_WIDTH; x++) {
+            for (int x = 0; x < MapWidth; x++) {
                 if (!Grid[x,y]) {
                     continue;
                 }
@@ -240,26 +240,26 @@ public class GridManager : Singleton<GridManager>
             }
         }
 
-        void fillNewLine(int y)
+        void FillNewLine(int y)
         {
-            for (int x = 0; x < MAP_WIDTH; x++) {
+            for (int x = 0; x < MapWidth; x++) {
                 if (x == skipSquare) {
                     continue;
                 }
                 GameObject square = Instantiate(
-                    _emptySquare,
+                    emptySquare,
                     new Vector3(x, y, 0),
-                    Quaternion.identity, _environment.transform
+                    Quaternion.identity, tetriminosEnvironment.transform
                 );
                 Grid[x,y] = square.transform;
             }
         }
 
-        bool isDead()
+        bool IsDead()
         {
-            for (int x = 0; x < MAP_WIDTH; x++)
+            for (int x = 0; x < MapWidth; x++)
             {
-                if (Grid[x, MAP_HEIGHT]) {
+                if (Grid[x, MapHeight]) {
                     return true;
                 }
             }
@@ -274,5 +274,5 @@ public class GridManager : Singleton<GridManager>
         GameManager.Instance.ChangeState(GameState.Loose);
     }
 
-    #endregion
+    #endregion Methods
 }
