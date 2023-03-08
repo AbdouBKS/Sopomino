@@ -19,6 +19,8 @@ public class GameManager : StaticInstance<GameManager> {
             case GameState.Starting:
                 HandleStarting();
                 break;
+            case GameState.Countdown:
+                break;
             case GameState.Loose:
                 HandleLoose();
                 break;
@@ -34,8 +36,13 @@ public class GameManager : StaticInstance<GameManager> {
             case GameState.ResetGame:
                 HandleResetGame();
                 break;
+            case GameState.Menu:
+                break;
+            case GameState.Win:
+                HandleWin();
+                break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
+                throw new ArgumentOutOfRangeException(nameof(newState), newState.ToString(), null);
         }
 
         OnAfterStateChanged?.Invoke(newState);
@@ -54,10 +61,16 @@ public class GameManager : StaticInstance<GameManager> {
     {
         GridManager.Instance.StartGame();
         TetriminosManager.Instance.StartGame();
-        ChangeState(GameState.Playing);
+        ChangeState(GameState.Countdown);
     }
 
     private void HandleLoose()
+    {
+        TetriminosManager.Instance.EndGame();
+        GridManager.Instance.EndGame();
+    }
+
+    private void HandleWin()
     {
         TetriminosManager.Instance.EndGame();
         GridManager.Instance.EndGame();
@@ -82,9 +95,12 @@ public class GameManager : StaticInstance<GameManager> {
 public enum GameState {
     Initiating,
     Starting,
+    Countdown,
     Playing,
     Loose,
+    Win,
     TryAgain,
     ResetGame,
     Pause,
+    Menu
 }

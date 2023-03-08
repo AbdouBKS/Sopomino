@@ -9,9 +9,7 @@ public class ScoreManager : StaticInstance<ScoreManager>
 
     private int _score;
     public int Score {
-        get {
-            return _score;
-        }
+        get => _score;
         private set {
             _score = value;
             OnScoreChange?.Invoke(_score);
@@ -20,9 +18,7 @@ public class ScoreManager : StaticInstance<ScoreManager>
 
     private int _lines;
     public int Lines {
-        get {
-            return _lines;
-        }
+        get => _lines;
         private set {
             _lines = value;
             OnLinesChange?.Invoke(_lines);
@@ -45,11 +41,19 @@ public class ScoreManager : StaticInstance<ScoreManager>
     {
         GridManager.OnLinesComplete += AddScore;
         GridManager.OnLinesComplete += AddLines;
+
+        GameManager.OnBeforeStateChanged += ResetGame;
     }
 
     protected override void Awake()
     {
         base.Awake();
+        ResetGame();
+    }
+    public void ResetGame(GameState state)
+    {
+        if (state != GameState.Starting) return;
+
         ResetGame();
     }
 
@@ -58,8 +62,6 @@ public class ScoreManager : StaticInstance<ScoreManager>
         Score = 0;
         Lines = 0;
     }
-
-
 
     private void AddScore(int score)
     {

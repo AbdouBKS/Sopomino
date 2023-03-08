@@ -10,6 +10,7 @@ public abstract class StaticInstance<T> : MonoBehaviour where T : MonoBehaviour 
     protected virtual void Awake() => Instance = this as T;
 
     protected virtual void OnApplicationQuit() {
+        Debug.Log(" on set a null : " + Instance.name);
         Instance = null;
         Destroy(gameObject);
     }
@@ -21,7 +22,11 @@ public abstract class StaticInstance<T> : MonoBehaviour where T : MonoBehaviour 
 /// </summary>
 public abstract class Singleton<T> : StaticInstance<T> where T : MonoBehaviour {
     protected override void Awake() {
-        if (Instance != null) Destroy(gameObject);
+        if (Instance != null)
+        {
+            Destroy(gameObject);
+            return;
+        }
         base.Awake();
     }
 }

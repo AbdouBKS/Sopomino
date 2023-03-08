@@ -8,12 +8,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Menus/MainMenu - WebGL.unity
     guid: a3b396b4db967c04e95003af5275225b
+  - enabled: 1
+    path: Assets/Scenes/Menus/MainMenu.unity
+    guid: 8726e09ea88f0d541b91680b5c456935
+  - enabled: 1
+    path: Assets/Scenes/Menus/ChooseGameMode.unity
+    guid: c6b18b73afe2ca74fab96deb9d31467f
   - enabled: 0
     path: Assets/Scenes/Menus/Lobby.unity
     guid: be8200a558cfff84b8ce074fa6e33558
-  - enabled: 0
-    path: Assets/Scenes/Menus/MainMenu.unity
-    guid: 8726e09ea88f0d541b91680b5c456935
   - enabled: 1
     path: Assets/Scenes/Game/Game.unity
     guid: 18ea1aa338314d044a003189230e0545

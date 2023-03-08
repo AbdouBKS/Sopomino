@@ -11,7 +11,7 @@ public class PenaltyUI : MonoBehaviour
 
     private void OnDisable()
     {
-        GridManager.OnPenaltyCountChange += ScalePenaltyBar;
+        GridManager.OnPenaltyCountChange -= ScalePenaltyBar;
     }
 
     private void ScalePenaltyBar(int penaltyCount)

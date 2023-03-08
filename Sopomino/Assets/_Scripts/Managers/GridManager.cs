@@ -65,7 +65,7 @@ public class GridManager : Singleton<GridManager>
     {
         base.Awake();
         if (tetriminosEnvironment == null) {
-            tetriminosEnvironment = GameObject.Find("Environment");
+            tetriminosEnvironment = GameObject.Find("Tetriminos");
         }
         Grid = new Transform[MapWidth, MapHeight + 1];
     }
@@ -113,7 +113,6 @@ public class GridManager : Singleton<GridManager>
             var roundedY = Mathf.RoundToInt(position.y);
 
             if (roundedY >= MapHeight - 1) {
-                _isDead = true;
                 Die();
                 return;
             }

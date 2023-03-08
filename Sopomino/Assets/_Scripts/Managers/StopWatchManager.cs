@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class StopWatchManager : StaticInstance<StopWatchManager>
 {
-    public float TimeSpent { get; private set; }
+    private float _timeSpent;
     public TimeSpan CurrentTime { get; private set;}
     [SerializeField]
     private bool pause;
@@ -27,8 +27,8 @@ public class StopWatchManager : StaticInstance<StopWatchManager>
             return;
         }
 
-        TimeSpent += Time.deltaTime;
-        CurrentTime = TimeSpan.FromSeconds(TimeSpent);
+        _timeSpent += Time.deltaTime;
+        CurrentTime = TimeSpan.FromSeconds(_timeSpent);
     }
 
     public void SetStopWatchStatus(bool status)
@@ -38,7 +38,7 @@ public class StopWatchManager : StaticInstance<StopWatchManager>
 
     public void ResetStopWatch()
     {
-        TimeSpent = 0;
+        _timeSpent = 0;
     }
 
     private void GameRestart(GameState state)
@@ -48,5 +48,15 @@ public class StopWatchManager : StaticInstance<StopWatchManager>
         }
 
         SetStopWatchStatus(state == GameState.Playing ? true : false);
+    }
+
+    public string GetTimeToString()
+    {
+        return CurrentTime.ToString(@"mm\:ss\:fff");
+    }
+
+    public int GetTimeInSeconds()
+    {
+        return (int)CurrentTime.TotalSeconds;
     }
 }

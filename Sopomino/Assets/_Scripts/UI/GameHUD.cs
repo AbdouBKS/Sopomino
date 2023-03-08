@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
+using GameMode;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
 
 
 public class GameHUD : MonoBehaviour
@@ -16,12 +15,14 @@ public class GameHUD : MonoBehaviour
     [SerializeField]
     private TextMeshProUGUI scoreText;
 
-    [FormerlySerializedAs("_linesText")] [SerializeField]
+    [SerializeField]
     private TextMeshProUGUI linesText;
 
     [SerializeField]
     private TextMeshProUGUI time;
-    private string _minutes;
+
+    [SerializeField]
+    private TextMeshProUGUI gameModeName;
 
     [Header("Tetriminos information")]
 
@@ -49,6 +50,11 @@ public class GameHUD : MonoBehaviour
         ResetTextsUI();
     }
 
+    private void Start()
+    {
+        SetGameModeName();
+    }
+
     private void OnEnable() {
         ScoreManager.OnScoreChange += SetScore;
         ScoreManager.OnLinesChange += SetLines;
@@ -68,31 +74,21 @@ public class GameHUD : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance.State != GameState.Pause) {
-            SetTimerText();
-        }
-        HandleEscapeKey();
+        if (GameManager.Instance.State == GameState.Pause) return;
+
+        SetTimerText();
     }
 
-    private void HandleEscapeKey()
+    private void SetGameModeName()
     {
-        if (GameManager.Instance.State == GameState.Loose || !Input.GetKeyDown(KeyCode.Escape)) {
-            return;
-        }
+        if (!IsGameModeSet()) return;
 
-        if (GameManager.Instance.State == GameState.Pause) {
-            BUTTON_Resume();
-            return;
-        }
-        BUTTON_Pause();
+        gameModeName.text = GameModeManager.Instance.gameMode.gameModeName.ToLower();
     }
 
     private void SetTimerText()
     {
-        TimeSpan currentTime = StopWatchManager.Instance.CurrentTime;
-
-        _minutes = currentTime.Minutes > 0 ? currentTime.Minutes.ToString("00") + ":" : "";
-        time.text = _minutes + currentTime.Seconds.ToString("00") + ":" + currentTime.Milliseconds.ToString("000");
+        time.text = StopWatchManager.Instance.GetTimeToString();
     }
 
     private void SetScore(int score)
@@ -146,42 +142,14 @@ public class GameHUD : MonoBehaviour
         time.text = "00:00:000";
     }
 
-    #region Buttons
+    #region Tools
 
-    public void BUTTON_Pause()
+    private bool IsGameModeSet()
     {
-        GameManager.Instance.ChangeState(GameState.Pause);
+        return GameModeManager.Instance && GameModeManager.Instance.gameMode;
     }
 
-    public void BUTTON_Resume()
-    {
-        GameManager.Instance.ChangeState(GameState.Playing);
-    }
-
-    public void BUTTON_ResetGame()
-    {
-        GameManager.Instance.ChangeState(GameState.ResetGame);
-    }
-
-    public void BUTTON_Quit()
-    {
-        #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-        #endif
-        Application.Quit();
-    }
-
-    public void BUTTON_GoToMenu()
-    {
-        if (Application.platform == RuntimePlatform.WebGLPlayer) {
-            SceneManager.LoadScene(ConstInfo.WEBGL_MAIN_MENU_SCEN);
-            return;
-        }
-
-        SceneManager.LoadScene(ConstInfo.MAIN_MENU_SCENE);
-    }
-
-    #endregion Buttons
+    #endregion Tools
 
     #endregion Methods
 }
