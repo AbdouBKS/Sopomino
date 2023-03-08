@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef876b9d81e60dc46883c5d5db7a0206, type: 3}
+  m_Name: Sprint 40 Lines
+  m_EditorClassIdentifier: 
+  gameModeName: Sprint 40 Lines
+  description: Break 40 lines the fastest way possible.
+  limit: 40
+  doesSpeedIncrease: 0
+  endGameTemplateMessage: You completed 40 lines in $1 with a score of $2
+  dataToDisplay: 0200000001000000

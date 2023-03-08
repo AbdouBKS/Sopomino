@@ -60,16 +60,18 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
 
     private void OnEnable() {
         Tetrimino.HasFallen += SpawnTetrimino;
+        GameManager.OnBeforeStateChanged += EndGame;
     }
 
     private void OnDisable()
     {
         Tetrimino.HasFallen -= SpawnTetrimino;
+        GameManager.OnBeforeStateChanged -= EndGame;
     }
 
     private void OnDestroy()
     {
-        EndGame();
+        EndGame(GameState.Loose);
     }
 
     public void StartGame()
@@ -80,8 +82,8 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
         _isDead = false;
         _canSwap = true;
 
-        if (environment == null) {
-            environment = GameObject.Find("Environment");
+        if (!environment) {
+            environment = GameObject.Find("Tetriminos");
         }
 
         AddTetriminoToBuffer(BufferSize);
@@ -99,6 +101,7 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
 
             void CreatePreviewTetrimono(Tetrimino tetrimino)
             {
+                // ReSharper disable once SuggestVarOrType_SimpleTypes
                 Tetrimino previewTetrimino = Instantiate(tetrimino);
 
                 previewTetrimino.name = PreviewPrefix + tetrimino.name;
@@ -107,8 +110,8 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
 
                 foreach (Transform children in previewTetrimino.transform)
                 {
-                    SpriteRenderer childrenSr = children.GetComponent<SpriteRenderer>();
-                    Color tmp = childrenSr.color;
+                    var childrenSr = children.GetComponent<SpriteRenderer>();
+                    var tmp = childrenSr.color;
                     tmp.a = 0.5f;
                     childrenSr.color = tmp;
                 }
@@ -118,11 +121,20 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
         }
     }
 
+
+    public void EndGame(GameState state)
+    {
+        if (!Helpers.IsEndGameState(state)) return;
+
+        EndGame();
+    }
+
     public void EndGame()
     {
         _nextTetriminos = null;
         _previewTetriminos = null;
         _swappableTetrimino = null;
+        _isDead = true;
     }
 
     private Tetrimino InstantiateTetrimino(Tetrimino tetrimino)
@@ -215,7 +227,6 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
 
     private void Die()
     {
-        _isDead = true;
         GameManager.Instance.ChangeState(GameState.Loose);
     }
 
@@ -246,5 +257,5 @@ public class TetriminosManager : StaticInstance<TetriminosManager>
         swapped.name = swapped.name.Split('(')[0].Trim();
     }
 
-    #endregion
+    #endregion Method
 }

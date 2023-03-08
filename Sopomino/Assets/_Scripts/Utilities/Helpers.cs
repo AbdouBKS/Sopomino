@@ -55,6 +55,11 @@ public static class Helpers
         return duplicated;
     }
 
+    public static bool IsEndGameState(GameState state)
+    {
+        return state == GameState.Loose || state == GameState.Win;
+    }
+
     public static bool ValidMove(this Tetrimino tetrimino)
     {
         foreach (Transform children in tetrimino.transform)

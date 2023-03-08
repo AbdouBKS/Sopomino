@@ -3,9 +3,14 @@ public struct ConstInfo
 
     #region Scenes
 
-    public const string MAIN_MENU_SCENE = "MainMenu";
-    public const string WEBGL_MAIN_MENU_SCEN = "MainMenu - WebGL";
+    #if UNITY_WEBGL
+        public const string MAIN_MENU_SCENE = "MainMenu - WebGL";
+    #else
+        public const string MAIN_MENU_SCENE = "MainMenu";
+    #endif
+
     public const string GAME_SCENE = "Game";
+    public const string GAME_MODE_SCENE = "ChooseGameMode";
 
     #endregion Scenes
 

@@ -1,28 +1,33 @@
-﻿using TMPro;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace UI
 {
-    [RequireComponent(typeof(HoverText))]
+    [RequireComponent(typeof(HoverInfo))]
     public class HoverButton : Button
     {
-        private HoverText _hoverText;
+        private HoverInfo _hoverText;
 
         protected override void Start()
         {
             base.Start();
-            _hoverText = GetComponent<HoverText>();
+            _hoverText = GetComponent<HoverInfo>();
+
+            onClick.AddListener(() =>
+            {
+                HoverManager.Instance.chooseDescription = _hoverText.description;
+                HoverManager.Instance.chooseTitle = _hoverText.title;
+            });
         }
 
         public override void OnPointerEnter(UnityEngine.EventSystems.PointerEventData eventData)
         {
-            HoverManager.Instance.SetHoverText(_hoverText.Text);
+            HoverManager.Instance.HoverEnter(_hoverText.description);
         }
 
         public override void OnPointerExit(UnityEngine.EventSystems.PointerEventData eventData)
         {
-            HoverManager.Instance.SetHoverText("");
+            HoverManager.Instance.HoverExit();
         }
     }
 }

@@ -18,7 +18,7 @@ public class MainMenuUI : MonoBehaviour
 
     public void BUTTON_Play()
     {
-        SceneManager.LoadScene(ConstInfo.GAME_SCENE);
+        SceneManager.LoadScene(ConstInfo.GAME_MODE_SCENE);
     }
 
     private void Start()
